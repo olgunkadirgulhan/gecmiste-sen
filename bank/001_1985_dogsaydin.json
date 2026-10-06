@@ -1,0 +1,423 @@
+{
+ "id": "001_1985_dogsaydin",
+ "title": "Eğer 1985'te Türkiye'de Doğsaydın?",
+ "thumb": {
+  "big": "1985",
+  "small": "TÜRKİYE",
+  "bg": 2
+ },
+ "description": "1985. Türkiye'de bir mahallede dünyaya geliyorsun. Tek kanallı televizyon, jetonlu telefon, mahalle maçları ve bakkal defteri... Bu videoda 80'lerin sonu ve 90'larda büyümeyi bu kez sen yaşıyorsun.\n\nBu videoda: TRT'nin tek kanallı yılları, siyah önlük ve beyaz yaka, beslenme çantası, jetonlu telefonlar, ilk özel televizyonlar, kaset ve walkman, mahalle oyunları, bayram harçlığı ve 2000'lere giden yol.\n\nSen 80'lerde ya da 90'larda mı büyüdün? En çok neyi özlüyorsun? Yorumlara yaz.",
+ "tags": [
+  "80ler",
+  "90lar",
+  "nostalji",
+  "90larda büyümek",
+  "eski türkiye",
+  "trt",
+  "jetonlu telefon",
+  "mahalle kültürü",
+  "türkiye tarihi",
+  "gündelik hayat tarihi",
+  "eğitici animasyon",
+  "1985"
+ ],
+ "character": {
+  "skin": "#F2C9A0",
+  "hair": "#4A2C1A"
+ },
+ "scenes": [
+  {
+   "chapter": "1985: Dünyaya Geliyorsun",
+   "year": "1985",
+   "bg": "small 1980s Turkish apartment building in an Istanbul neighborhood, balconies with laundry lines, a grocery shop on the corner, spring morning, no people",
+   "char": {
+    "age": "baby",
+    "pos": "none"
+   },
+   "text": "Yıl 1985. Türkiye'de, kalabalık bir mahallede, dört katlı bir apartmanın ikinci katında dünyaya geliyorsun. Kapı komşuları ilk günden ziyarete geliyor, ellerinde kolonya ve çikolata."
+  },
+  {
+   "bg": "cozy 1980s Turkish living room, lace doilies on the furniture, patterned carpet, a vintage wooden box television on a stand, glass vitrine with porcelain, no people",
+   "char": {
+    "age": "baby",
+    "pos": "none"
+   },
+   "text": "Evinizin baş köşesinde tüplü, tahta kasalı bir televizyon duruyor. Ama bu televizyonda seçecek pek bir şey yok: tek bir kanal var, TRT."
+  },
+  {
+   "bg": "vintage box television showing a test pattern on screen in a dim 1980s living room at night, wooden cabinet, lamp light, no people",
+   "char": {
+    "age": "baby",
+    "pos": "none"
+   },
+   "text": "Yayın akşam başlıyor, gece de bitiyor. Ekranda test kartı belirdiğinde, ev yavaş yavaş uykuya dalıyor."
+  },
+  {
+   "chapter": "Mahallede Büyümek",
+   "year": "1990",
+   "bg": "1990 Turkish neighborhood street, narrow road, old apartment buildings, a small grocery store with crates of fruit outside, summer afternoon, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#3A7BD5",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "1990'a geldiğinde artık beş yaşındasın. Gününün çoğu sokakta geçiyor. Mahallenin bakkalı herkesi tanıyor, annen bir şey unutursa seni gönderiyor."
+  },
+  {
+   "bg": "close view of an old neighborhood grocery store counter in Turkey, glass jars of candy, a notebook and pencil on the counter, shelves with bread and soap, warm light, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#3A7BD5",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Paran yoksa sorun değil. Bakkal amca deftere yazıyor: veresiye. Ay sonunda baban gelip hesabı kapatıyor."
+  },
+  {
+   "bg": "empty dusty street between apartment buildings at sunset, two small stones as a football goal, a worn football on the ground, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#E04E39",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Akşamüstü sokak maçları başlıyor. Kale iki taştan ibaret. Top bir arabanın altına kaçınca maç duruyor, araba geçince devam ediyor."
+  },
+  {
+   "bg": "colorful glass marbles scattered on dry dirt ground in a Turkish neighborhood, chalk hopscotch lines on the pavement nearby, afternoon sun, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#E04E39",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Misket, saklambaç, yakar top, seksek... Oyuncakların çoğu sokaktan çıkıyor. Hava kararınca balkondan annenin sesi geliyor: Yemeğe!"
+  },
+  {
+   "chapter": "Sobalı Kışlar",
+   "year": "1991",
+   "bg": "a 1990s Turkish living room in winter with a black cast iron coal stove and its pipe, a kettle on top, frosted window, warm glow, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#8E5A3C",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Kışın evin kalbi sobadır. Sabah babanın sobayı yakmasını beklersin, yorganın altından çıkmak için önce odanın ısınması gerekir."
+  },
+  {
+   "bg": "a coal storage corner in a Turkish apartment basement, sacks of coal, a metal bucket and shovel, dim light, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#8E5A3C",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Kömür sonbaharda alınır, bodruma taşınır. Kova kova yukarı çıkarmak çoğu zaman çocukların görevidir. Ellerin simsiyah olur ama kimse şikayet etmez."
+  },
+  {
+   "bg": "a kettle and a teapot on top of a stove, chestnuts roasting on the stove plate, tea glasses on a small tray, cozy winter evening, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#8E5A3C",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Sobanın üstünde hep bir çaydanlık kaynar. Bazen kestane, bazen portakal kabuğu konur. Ev mis gibi kokar."
+  },
+  {
+   "chapter": "Siyah Önlük, Beyaz Yaka",
+   "year": "1992",
+   "bg": "1990s Turkish primary school classroom, wooden desks in rows, green chalkboard, a map of Turkey on the wall, sunlight through windows, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#1E1E1E",
+    "pants": "#1E1E1E",
+    "collar": true,
+    "pos": "left"
+   },
+   "text": "Yedi yaşında okula başlıyorsun. Üzerinde siyah önlük, boynunda beyaz yaka. Sabahları annen yakanı kolalıyor ki dimdik dursun."
+  },
+  {
+   "bg": "a plastic lunch box with a sandwich, a small glass bottle of juice and an apple on a wooden school desk, 1990s classroom background, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#1E1E1E",
+    "pants": "#1E1E1E",
+    "collar": true,
+    "pos": "right"
+   },
+   "text": "Beslenme çantanda genellikle aynı şeyler var: peynirli ekmek, bir elma, belki de bir meyve suyu. Teneffüste herkes birbirinin beslenmesine göz atıyor."
+  },
+  {
+   "bg": "school courtyard in Turkey on a Monday morning, flag pole with a red Turkish flag, painted lines on the ground, school building, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#1E1E1E",
+    "pants": "#1E1E1E",
+    "collar": true,
+    "pos": "left"
+   },
+   "text": "Pazartesi sabahları bayrak töreni yapılıyor. Karne günü ise ayrı bir heyecan: pekiyiler eve koşarak mı götürülecek, yoksa karne sessizce mi uzatılacak?"
+  },
+  {
+   "chapter": "Jeton ve Mektup",
+   "year": "1993",
+   "bg": "an old yellow public telephone booth on a Turkish street in the early 1990s, payphone with a coin slot, worn sidewalk, evening, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#2E9E5B",
+    "pants": "#3B3B6B",
+    "pos": "right"
+   },
+   "text": "Evinizde telefon olsa bile uzak şehirleri aramak pahalı. Sokaktaki ankesörlü telefonlar jetonla çalışıyor. Konuşma uzayınca jeton jeton biriktiriyorsun."
+  },
+  {
+   "bg": "a stack of handwritten letters and envelopes with stamps on a wooden table, a pen and an old family photo, soft window light, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#2E9E5B",
+    "pants": "#3B3B6B",
+    "pos": "left"
+   },
+   "text": "Uzaktaki akrabalarla mektuplaşılıyor. Bir mektubun gelmesi bazen bir hafta sürüyor ve geldiği gün yüksek sesle, bütün aileye okunuyor."
+  },
+  {
+   "bg": "1990s Turkish street with magnetic telephone card advertisements, a newer blue card payphone on a wall, daytime, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#2E9E5B",
+    "pants": "#3B3B6B",
+    "pos": "right"
+   },
+   "text": "Yıllar içinde jetonun yerini manyetik telefon kartları alıyor. Bazı çocuklar bu kartları biriktiriyor, tıpkı pul ya da futbolcu kartı gibi."
+  },
+  {
+   "chapter": "Ekran Renkleniyor",
+   "year": "90'LAR",
+   "bg": "a 1990s living room at night, vintage television glowing with colorful light, a satellite dish visible through the window on the balcony, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#F2A33A",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Doksanlarda televizyon hayatın merkezine oturuyor. 1990'da ilk özel kanal yayına başlıyor ve kısa süre içinde kanallar çoğalıyor."
+  },
+  {
+   "bg": "a television remote control and a bowl of sunflower seeds on a coffee table, glowing vintage television in the background, family room at night, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#F2A33A",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Artık evde kumanda kavgası var. Baban haberleri, annen diziyi, sen ise çizgi filmi izlemek istiyorsun. Kazanan genellikle belli."
+  },
+  {
+   "bg": "a cassette tape, a portable cassette player with headphones and a pencil on a teenage bedroom desk, posters on the wall, 1990s, no people",
+   "char": {
+    "age": "teen",
+    "shirt": "#7A4FD1",
+    "pants": "#3B4A6B",
+    "pos": "left"
+   },
+   "text": "Müzik ise kasette. En sevdiğin şarkıları radyodan kasete kaydediyorsun. Kasetin bandı dolanınca bir kalemle sabırla geri sarıyorsun."
+  },
+  {
+   "chapter": "İlk Cep Telefonları",
+   "year": "1994",
+   "bg": "a 1990s electronics shop window in Turkey displaying large early mobile phones with antennas, price tags, street reflection, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#5D6D7E",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "1994'te Türkiye'de cep telefonu dönemi başlıyor. İlk telefonlar büyük, pahalı ve antenli. Mahallede birinin cebinde görünce herkes dönüp bakıyor."
+  },
+  {
+   "bg": "an early 1990s brick-like mobile phone on a restaurant table next to a glass of tea, a man's briefcase nearby, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#5D6D7E",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Kısa süre sonra telefonlar küçülüyor, fiyatlar düşüyor. Ama senin ilk cep telefonun için daha birkaç yıl beklemen gerekecek."
+  },
+  {
+   "chapter": "Zor Yıllar da Var",
+   "year": "1994",
+   "bg": "a quiet 1990s Turkish kitchen table with a newspaper, a calculator and a few bills, a single lamp, evening, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#5D6D7E",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Ama her şey toz pembe değil. 1994'te ülke büyük bir ekonomik krizle sarsılıyor. Fiyatlar hızla artıyor, evde hesap kitap daha sık yapılıyor."
+  },
+  {
+   "bg": "an old Turkish market street with price tags on goods, crates of vegetables, shop signs, cloudy day, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#5D6D7E",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Paranın değeri sürekli düştüğü için büyükler milyonlarla konuşuyor. Bir ekmek almak için cebinde sıfırları bol banknotlar taşıyorsun."
+  },
+  {
+   "chapter": "Bayram ve Aile",
+   "year": "1995",
+   "bg": "a festive Turkish family dining table with baklava, candy bowls and tea glasses, an old family living room decorated for a holiday, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#C0392B",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Bayramlar ayrı bir dünya. Sabah erkenden yeni kıyafetlerini giyiyorsun, büyüklerin elini öpüyorsun ve harçlıkları dikkatle cebine koyuyorsun."
+  },
+  {
+   "bg": "a narrow street of a Turkish neighborhood during a holiday morning, doors with small decorations, candy wrappers on the ground, bright sky, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#C0392B",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Mahallenin çocukları kapı kapı dolaşıp şeker topluyor. Akşam olunca herkes harçlığını sayıyor ve kimin daha çok topladığı tartışılıyor."
+  },
+  {
+   "bg": "a long-distance Turkish intercity bus at a bus terminal in the 1990s, luggage on the roof rack, morning light, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#C0392B",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Yaz tatilleri çoğu zaman memlekette, köyde, dedenlerin yanında geçiyor. Uzun otobüs yolculuklarında mola yerindeki çay ve tost ayrı bir keyif."
+  },
+  {
+   "chapter": "Atari Salonu",
+   "year": "1996",
+   "bg": "a small 1990s arcade hall in Turkey with rows of colorful arcade cabinets, glowing screens, posters, dim neon light, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#16A085",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Biraz büyüyünce mahallede atari salonları dikkatini çeker. Harçlığın jetona dönüşür, en iyi oyuncunun arkasında kalabalık birikir."
+  },
+  {
+   "bg": "a home television connected to a game console with two controllers and cartridges on a carpet, 1990s living room, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#16A085",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Şanslıysan evde bir oyun konsolu vardır. Kartuşu taktığında oyun açılmazsa önce üflersin, sonra yeniden denersin. Herkes bunu yapar."
+  },
+  {
+   "bg": "a stack of comic books and sticker albums on a child's bed, 1990s bedroom, posters on the wall, no people",
+   "char": {
+    "age": "kid",
+    "shirt": "#16A085",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Çıkartma albümleri tamamlanmaya çalışılır, eksik çıkartmalar okulda takas edilir. Herkesin bulamadığı o tek bir çıkartma vardır."
+  },
+  {
+   "chapter": "Lise ve Hayaller",
+   "year": "1999",
+   "bg": "a late 1990s Turkish high school hallway, lockers, bulletin board with exam announcements, afternoon light, no people",
+   "char": {
+    "age": "teen",
+    "shirt": "#2C82C9",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Liseye geldiğinde gündem değişiyor: üniversite sınavı. Dershaneler, deneme sınavları ve gece geç saatlere kadar çözülen testler."
+  },
+  {
+   "bg": "a 1990s internet cafe with rows of old beige computers and CRT monitors, posters on the walls, dim light, no people",
+   "char": {
+    "age": "teen",
+    "shirt": "#2C82C9",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Bu arada mahallede ilk internet kafeler açılıyor. Bağlantı yavaş, ekranlar kalın ama oyun oynamak ve ilk e-posta adresini almak büyük bir macera."
+  },
+  {
+   "bg": "a quiet Turkish city at dusk in 1999, apartment buildings with lit windows, a calm sky, respectful and somber mood, no people",
+   "char": {
+    "age": "teen",
+    "shirt": "#2C82C9",
+    "pants": "#2B2B2B",
+    "pos": "none"
+   },
+   "text": "1999 yazının sonunda Marmara depremi ülkeyi derinden yaralıyor. O günleri yaşayan herkes, birbirine nasıl kenetlendiğini hâlâ hatırlıyor."
+  },
+  {
+   "chapter": "2000'lere Giriş",
+   "year": "2000",
+   "bg": "fireworks over the Bosphorus in Istanbul on New Year's Eve 2000, city lights reflecting on the water, festive night, no people",
+   "char": {
+    "age": "teen",
+    "shirt": "#F2A33A",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Ve 2000 yılı geliyor. Bilgisayarların yeni yılda çökeceği konuşuluyor ama hiçbir şey olmuyor. Sen on beş yaşındasın ve yeni bir yüzyıla adım atıyorsun."
+  },
+  {
+   "bg": "a Turkish city street celebration at night with red and yellow flags hanging from balconies, cars honking, streetlights, festive, no people",
+   "char": {
+    "age": "teen",
+    "shirt": "#E8B723",
+    "pants": "#B3261E",
+    "pos": "right"
+   },
+   "text": "O yıl bir Türk takımı Avrupa'da kupa kazanıyor ve sokaklar sabaha kadar korna sesleriyle doluyor. Tuttuğun takım hangisi olursa olsun, o gece herkes sokakta."
+  },
+  {
+   "chapter": "Geriye Bakınca",
+   "year": "1985",
+   "bg": "an old family photo album open on a table, faded photographs, tea glass beside it, warm nostalgic light, no people",
+   "char": {
+    "age": "adult",
+    "shirt": "#3A7BD5",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Bugün geriye baktığında o yıllar hem zor hem de çok sıcak görünüyor. Az kanal, az imkan vardı ama sokak, komşuluk ve zaman boldu."
+  },
+  {
+   "bg": "the same Turkish neighborhood street at sunset, modern cars now parked, old grocery store still on the corner, nostalgic warm light, no people",
+   "char": {
+    "age": "adult",
+    "shirt": "#3A7BD5",
+    "pants": "#2B2B2B",
+    "pos": "right"
+   },
+   "text": "Belki o bakkal hâlâ köşede duruyor, belki de yerinde bir market var. Ama 1985'te doğan çocuk, o mahalleyi hep aklının bir köşesinde taşıyor."
+  },
+  {
+   "bg": "a cozy desk with an old cassette, a phone card, a glass marble and a school collar laid out like keepsakes, soft light, no people",
+   "char": {
+    "age": "adult",
+    "shirt": "#3A7BD5",
+    "pants": "#2B2B2B",
+    "pos": "left"
+   },
+   "text": "Sen 80'lerde ya da 90'larda mı büyüdün? En çok neyi özlüyorsun? Misketi mi, bayram harçlığını mı, yoksa tek kanallı akşamları mı? Yorumlara yaz."
+  }
+ ]
+}

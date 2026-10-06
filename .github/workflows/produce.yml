@@ -1,0 +1,69 @@
+name: produce
+# Bir video: sahne görselleri 6 paralel işte (CPU), sonra ses + kurgu. Yükleme ayrı adım (kanal bağlanınca).
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "bank/ içindeki senaryo dosyası"
+        required: true
+        default: bank/001_1985_dogsaydin.json
+
+env:
+  PYTHONUTF8: "1"
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install diffusers transformers accelerate peft safetensors pillow numpy
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-dreamshaper8-lcm
+      - run: python make.py images "${{ inputs.script }}" --part ${{ matrix.part }} --of 6
+      - uses: actions/upload-artifact@v5
+        with:
+          name: img-${{ matrix.part }}
+          path: cache/bg_*.png
+          if-no-files-found: ignore
+          retention-days: 3
+
+  render:
+    needs: images
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: pip install pillow numpy edge-tts
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: img-*
+          path: cache
+          merge-multiple: true
+      - run: python make.py voice "${{ inputs.script }}"
+      - run: python make.py render "${{ inputs.script }}"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: video
+          path: |
+            out/video.mp4
+            out/thumb.jpg
+            out/meta.json
+          retention-days: 14
