@@ -1,0 +1,23 @@
+name: img-test
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install diffusers transformers accelerate peft safetensors
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-dreamshaper8-lcm
+      - run: mkdir -p out && python tools/img_test.py
+      - uses: actions/upload-artifact@v5
+        with:
+          name: images
+          path: out/
