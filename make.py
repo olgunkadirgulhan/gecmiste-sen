@@ -22,10 +22,9 @@ CHANNEL = "Geçmişte Sen"
 
 STYLE = ("retro vintage storybook illustration, old-fashioned, period accurate details, faded old color film look, "
          "warm sepia tones, soft grain, painterly, wide shot")
-NEG = ("people, person, man, woman, child, face, crowd, figure, text, letters, writing, signboard text, watermark, logo, "
-       "signature, modern, contemporary, flat screen tv, widescreen tv, thin tv, led tv, plasma tv, two televisions, "
-       "air conditioner, smartphone, laptop, skyscraper, glass building, "
-       "new car, neon led, 2020s, photorealistic, blurry, deformed, lowres")
+# CLIP ~77 tokende keser: en önemli yasaklar başta
+NEG = ("flat screen tv, widescreen tv, lcd tv, air conditioner, smartphone, laptop, people, person, face, child, "
+       "text, letters, watermark, logo, modern, skyscraper, new car, rabbit, animal, photorealistic, blurry, deformed")
 
 
 def era(script, i):
