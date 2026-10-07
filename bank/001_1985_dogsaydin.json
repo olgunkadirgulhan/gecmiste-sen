@@ -37,7 +37,7 @@
    "text": "Yıl 1985. Türkiye'de, kalabalık bir mahallede, dört katlı bir apartmanın ikinci katında dünyaya geliyorsun. Kapı komşuları ilk günden ziyarete geliyor, ellerinde kolonya ve çikolata."
   },
   {
-   "bg": "cozy 1980s Turkish living room, lace doilies on the furniture, patterned carpet, a vintage wooden box television on a stand, glass vitrine with porcelain, no people",
+   "bg": "cozy 1980s Turkish living room, lace doilies on the furniture, patterned carpet, a bulky old CRT tube television with wooden cabinet and rabbit ear antenna on a stand, glass vitrine with porcelain, no people",
    "char": {
     "age": "baby",
     "pos": "none"
@@ -45,7 +45,7 @@
    "text": "Evinizin baş köşesinde tüplü, tahta kasalı bir televizyon duruyor. Ama bu televizyonda seçecek pek bir şey yok: tek bir kanal var, TRT."
   },
   {
-   "bg": "vintage box television showing a test pattern on screen in a dim 1980s living room at night, wooden cabinet, lamp light, no people",
+   "bg": "bulky old CRT tube television with rabbit ear antenna showing a color bar test pattern on screen in a dim 1980s living room at night, wooden cabinet, lamp light, no people",
    "char": {
     "age": "baby",
     "pos": "none"
@@ -196,7 +196,7 @@
   {
    "chapter": "Ekran Renkleniyor",
    "year": "90'LAR",
-   "bg": "a 1990s living room at night, vintage television glowing with colorful light, a satellite dish visible through the window on the balcony, no people",
+   "bg": "a 1990s living room at night, bulky old CRT tube television glowing with colorful light, a satellite dish visible through the window on the balcony, no people",
    "char": {
     "age": "kid",
     "shirt": "#F2A33A",
@@ -206,7 +206,7 @@
    "text": "Doksanlarda televizyon hayatın merkezine oturuyor. 1990'da ilk özel kanal yayına başlıyor ve kısa süre içinde kanallar çoğalıyor."
   },
   {
-   "bg": "a television remote control and a bowl of sunflower seeds on a coffee table, glowing vintage television in the background, family room at night, no people",
+   "bg": "a television remote control and a bowl of sunflower seeds on a coffee table, glowing bulky old CRT tube television in the background, family room at night, no people",
    "char": {
     "age": "kid",
     "shirt": "#F2A33A",
@@ -346,7 +346,7 @@
    "text": "Liseye geldiğinde gündem değişiyor: üniversite sınavı. Dershaneler, deneme sınavları ve gece geç saatlere kadar çözülen testler."
   },
   {
-   "bg": "a 1990s internet cafe with rows of old beige computers and CRT monitors, posters on the walls, dim light, no people",
+   "bg": "a 1990s internet cafe with rows of old beige 1990s desktop computers with bulky CRT monitors, posters on the walls, dim light, no people",
    "char": {
     "age": "teen",
     "shirt": "#2C82C9",

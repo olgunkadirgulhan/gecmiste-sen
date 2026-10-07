@@ -13,16 +13,37 @@ CACHE = os.path.join(HERE, "cache")
 OUT = os.path.join(HERE, "out")
 W, H, FPS = 1920, 1080, 30
 SR = 48000
-VOICE = os.environ.get("VOICE", "de-DE-FlorianMultilingualNeural")
+# yerli Türkçe ses: çok dilli sesler (Florian) bazı cümleleri İngilizce okuyordu
+VOICE = os.environ.get("VOICE", "tr-TR-AhmetNeural")
 RATE = os.environ.get("VOICE_RATE", "-4%")
 GAP = 0.45          # sahneler arası nefes
 XFADE = 0.5         # sahne geçişi
 CHANNEL = "Geçmişte Sen"
 
-STYLE = ("detailed 2D digital illustration, storybook style, warm muted vintage colors, soft cinematic lighting, "
-         "clean outlines, painterly background, wide shot")
-NEG = ("people, person, man, woman, child, face, crowd, figure, text, letters, watermark, logo, signature, photo, "
-       "photorealistic, blurry, deformed, ugly, lowres")
+STYLE = ("retro vintage storybook illustration, old-fashioned, period accurate details, faded old color film look, "
+         "warm sepia tones, soft grain, painterly, wide shot")
+NEG = ("people, person, man, woman, child, face, crowd, figure, text, letters, writing, signboard text, watermark, logo, "
+       "signature, modern, contemporary, flat screen tv, led tv, smartphone, laptop, skyscraper, glass building, "
+       "new car, neon led, 2020s, photorealistic, blurry, deformed, lowres")
+
+
+def era(script, i):
+    """Sahnenin yılı: en son bölüm yılından (\"90'LAR\" gibi değerleri de çözer)."""
+    for sc in reversed(script["scenes"][:i + 1]):
+        m = re.search(r"(19|20)\d\d", sc.get("year", ""))
+        if m:
+            return int(m.group(0))
+        if "90" in sc.get("year", ""):
+            return 1995
+    return None
+
+
+def prompt(script, i):
+    sc = script["scenes"][i]
+    y = era(script, i)
+    when = f"set in Turkey in the {y // 10 * 10}s, " if y else ""
+    # SD1.5 metni ~77 tokende keser: dönem ve tarz başta, sahne sonra
+    return f"{when}retro vintage storybook illustration, {sc['bg']}, faded old color film look, {STYLE}"
 
 
 def load(path):
@@ -35,7 +56,7 @@ def h(s):
 
 
 def img_path(sc):
-    return os.path.join(CACHE, f"bg_{h(sc['bg'])}.png")
+    return os.path.join(CACHE, f"bg_{h(sc['bg'] + STYLE)}.png")
 
 
 # ------------------------------------------------------------------ görseller
@@ -44,7 +65,9 @@ def cmd_images(script, part, of):
     import torch
     from diffusers import StableDiffusionPipeline, LCMScheduler
     os.makedirs(CACHE, exist_ok=True)
-    todo = [sc for i, sc in enumerate(script["scenes"]) if i % of == part and not os.path.exists(img_path(sc))]
+    only = os.environ.get("ONLY")
+    idx = [int(x) for x in only.split(",")] if only else [i for i in range(len(script["scenes"])) if i % of == part]
+    todo = [i for i in idx if not os.path.exists(img_path(script["scenes"][i]))]
     if not todo:
         return
     pipe = StableDiffusionPipeline.from_pretrained("Lykon/dreamshaper-8", torch_dtype=torch.float32, safety_checker=None)
@@ -52,9 +75,10 @@ def cmd_images(script, part, of):
     pipe.fuse_lora()
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
     torch.set_num_threads(os.cpu_count() or 4)
-    for sc in todo:
+    for i in todo:
+        sc = script["scenes"][i]
         seed = int(h(sc["bg"]), 16) % 10 ** 6
-        img = pipe(f"{sc['bg']}, {STYLE}", negative_prompt=NEG, num_inference_steps=6, guidance_scale=1.5,
+        img = pipe(prompt(script, i), negative_prompt=NEG, num_inference_steps=6, guidance_scale=1.5,
                    width=1024, height=576, generator=torch.Generator().manual_seed(seed)).images[0]
         img.save(img_path(sc))
         print("image", os.path.basename(img_path(sc)), flush=True)
@@ -295,7 +319,22 @@ def prep_bg(sc):
     else:
         im = Image.open(img_path(sc)).convert("RGB")
     im = im.resize((int(W * 1.12), int(H * 1.12)), Image.LANCZOS).filter(ImageFilter.UnsharpMask(2, 60, 2))
-    return im
+    return vintage(im, int(h(sc["bg"]), 16))
+
+
+def vintage(im, seed):
+    """Eski fotoğraf/film hissi: soluk renk, sıcak ton, kalkık siyahlar, hafif gren ve kenar kararması."""
+    a = np.asarray(im).astype(np.float32) / 255
+    gray = a.mean(axis=2, keepdims=True)
+    a = gray + (a - gray) * 0.72                      # doygunluk -%28
+    a = a * np.array([1.06, 1.0, 0.86]) + np.array([0.03, 0.02, 0.0])   # sıcak/sepya
+    a = 0.06 + a * 0.9                                # siyahlar kalkık (soluk film)
+    rng = np.random.default_rng(seed % 2 ** 32)
+    a += rng.normal(0, 0.025, a.shape[:2])[..., None]  # gren
+    yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+    r = np.hypot((xx - a.shape[1] / 2) / (a.shape[1] / 2), (yy - a.shape[0] / 2) / (a.shape[0] / 2))
+    a *= (1 - 0.35 * np.clip(r - 0.55, 0, 1) ** 1.5)[..., None]
+    return Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8))
 
 
 def bg_frame(bg, u, k):
