@@ -75,13 +75,32 @@ def cmd_images(script, part, of):
     pipe.fuse_lora()
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
     torch.set_num_threads(os.cpu_count() or 4)
+    from transformers import CLIPModel, CLIPProcessor
+    clip = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    proc = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
     for i in todo:
         sc = script["scenes"][i]
         seed = int(h(sc["bg"]), 16) % 10 ** 6
-        img = pipe(prompt(script, i), negative_prompt=NEG, num_inference_steps=6, guidance_scale=1.5,
-                   width=1024, height=576, generator=torch.Generator().manual_seed(seed)).images[0]
-        img.save(img_path(sc))
+        tv = "television" in sc["bg"]
+        cands = [pipe(prompt(script, i), negative_prompt=NEG, num_inference_steps=6, guidance_scale=2.0,
+                      width=1024, height=576, generator=torch.Generator().manual_seed(seed + k)).images[0]
+                 for k in range(4 if tv else 2)]
+        best = max(range(len(cands)), key=lambda k: period_score(clip, proc, cands[k], tv))
+        cands[best].save(img_path(sc))
         print("image", os.path.basename(img_path(sc)), flush=True)
+
+
+def period_score(clip, proc, im, tv):
+    """Adaylar arasında dönemine en uygun görünen kareyi seçer (CLIP: eski - modern)."""
+    import torch
+    good = ["a faded old photograph of a 1980s room", "vintage retro objects from the past"]
+    bad = ["a modern flat screen television", "an air conditioner on the wall", "a modern contemporary interior"]
+    if tv:
+        good.append("a bulky old CRT television set with knobs")
+    inp = proc(text=good + bad, images=im, return_tensors="pt", padding=True)
+    with torch.no_grad():
+        p = clip(**inp).logits_per_image.softmax(-1)[0]
+    return float(p[:len(good)].sum() - p[len(good):].sum())
 
 
 # ------------------------------------------------------------------ ses
