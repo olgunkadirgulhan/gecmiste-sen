@@ -1,0 +1,33 @@
+name: test
+# Her kod değişikliğinde hızlı duman testi: ilk 3 sahne, görselsiz (degrade), ses + kurgu uçtan uca.
+on:
+  push:
+    paths: ["make.py", "bank/**", ".github/workflows/**"]
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      QUICK: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: pip install pillow numpy edge-tts
+      - name: All scripts are valid JSON with required fields
+        run: |
+          python - <<'PY'
+          import json, glob
+          for p in glob.glob("bank/*.json"):
+              d = json.load(open(p, encoding="utf-8"))
+              assert d["title"] and d["scenes"], p
+              for i, s in enumerate(d["scenes"]):
+                  assert s.get("text") and s.get("bg") and "char" in s, (p, i)
+          print("scripts ok")
+          PY
+      - run: |
+          for f in bank/*.json; do python make.py voice "$f" && python make.py render "$f" && test -s out/video.mp4 || exit 1; rm -rf cache out; done

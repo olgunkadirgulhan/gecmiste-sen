@@ -287,7 +287,13 @@ def timeline(script, durs):
 
 
 def prep_bg(sc):
-    im = Image.open(img_path(sc)).convert("RGB")
+    if not os.path.exists(img_path(sc)):   # görsel eksikse video yine çıksın: sıcak degrade arka plan
+        print("WARNING missing image for scene:", sc["bg"][:60], flush=True)
+        g = np.linspace(0, 1, H)[:, None, None]
+        arr = (np.array([70, 55, 45]) * (1 - g) + np.array([190, 150, 110]) * g).astype(np.uint8)
+        im = Image.fromarray(np.repeat(arr, W, axis=1))
+    else:
+        im = Image.open(img_path(sc)).convert("RGB")
     im = im.resize((int(W * 1.12), int(H * 1.12)), Image.LANCZOS).filter(ImageFilter.UnsharpMask(2, 60, 2))
     return im
 
@@ -481,6 +487,8 @@ def thumbnail(script, skin, hair):
 if __name__ == "__main__":
     cmd, path = sys.argv[1], sys.argv[2]
     s = load(path)
+    if os.environ.get("QUICK"):   # duman testi: ilk 3 sahne (CI her push'ta çalıştırır)
+        s["scenes"] = s["scenes"][:3]
     if cmd == "images":
         a = sys.argv
         cmd_images(s, int(a[a.index("--part") + 1]), int(a[a.index("--of") + 1]))
