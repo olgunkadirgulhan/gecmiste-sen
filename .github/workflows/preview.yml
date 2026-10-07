@@ -1,0 +1,31 @@
+name: preview
+# Bir produce run'ının videosundan hafif önizleme (720p, ~20 MB) çıkarır: yavaş bağlantıda hızlı izlemek için.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        required: true
+permissions:
+  actions: read
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
+      - uses: actions/download-artifact@v5
+        with:
+          name: video
+          path: v
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - run: ffmpeg -y -v error -i v/video.mp4 -vf scale=1280:-2 -c:v libx264 -preset veryfast -crf 30 -c:a aac -b:a 96k -movflags +faststart preview.mp4 && ls -la preview.mp4
+      - uses: actions/upload-artifact@v5
+        with:
+          name: preview
+          path: |
+            preview.mp4
+            v/thumb.jpg
+            v/meta.json
+          retention-days: 7
