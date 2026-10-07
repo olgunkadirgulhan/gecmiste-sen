@@ -7,12 +7,21 @@ on:
         description: "bank/ içindeki senaryo dosyası"
         required: true
         default: bank/001_1985_dogsaydin.json
+      images_from:
+        description: "Görselleri yeniden üretme: bu run id'sinin img-* artifact'larını kullan (boş = üret)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
 
 env:
   PYTHONUTF8: "1"
 
 jobs:
   images:
+    if: inputs.images_from == ''
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -42,6 +51,7 @@ jobs:
 
   render:
     needs: images
+    if: always() && (needs.images.result == 'success' || inputs.images_from != '')
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -57,6 +67,8 @@ jobs:
           pattern: img-*
           path: cache
           merge-multiple: true
+          run-id: ${{ inputs.images_from || github.run_id }}
+          github-token: ${{ github.token }}
       - run: python make.py voice "${{ inputs.script }}"
       - run: python make.py render "${{ inputs.script }}"
       - uses: actions/upload-artifact@v5

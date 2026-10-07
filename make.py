@@ -110,9 +110,11 @@ def music(total, seed):
     hz = lambda m: 440 * 2 ** ((m - 69) / 12)
     bar = 4 * beat
     k = 0
-    while k * bar < total + bar:
+    while True:
         ch = prog[k % 4]
         t0 = int(k * bar * SR)
+        if t0 >= n:
+            break
         L = int(bar * SR)
         t = np.arange(L) / SR
         pad = sum(np.sin(2 * np.pi * hz(m - 12) * t) for m in ch) / 3
