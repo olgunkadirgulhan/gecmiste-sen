@@ -23,7 +23,8 @@ CHANNEL = "Geçmişte Sen"
 STYLE = ("retro vintage storybook illustration, old-fashioned, period accurate details, faded old color film look, "
          "warm sepia tones, soft grain, painterly, wide shot")
 NEG = ("people, person, man, woman, child, face, crowd, figure, text, letters, writing, signboard text, watermark, logo, "
-       "signature, modern, contemporary, flat screen tv, led tv, smartphone, laptop, skyscraper, glass building, "
+       "signature, modern, contemporary, flat screen tv, widescreen tv, thin tv, led tv, plasma tv, two televisions, "
+       "air conditioner, smartphone, laptop, skyscraper, glass building, "
        "new car, neon led, 2020s, photorealistic, blurry, deformed, lowres")
 
 

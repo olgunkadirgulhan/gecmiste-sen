@@ -37,7 +37,7 @@
    "text": "Yıl 1985. Türkiye'de, kalabalık bir mahallede, dört katlı bir apartmanın ikinci katında dünyaya geliyorsun. Kapı komşuları ilk günden ziyarete geliyor, ellerinde kolonya ve çikolata."
   },
   {
-   "bg": "cozy 1980s Turkish living room, lace doilies on the furniture, patterned carpet, a bulky old CRT tube television with wooden cabinet and rabbit ear antenna on a stand, glass vitrine with porcelain, no people",
+   "bg": "one small boxy square wooden cabinet tube television with rabbit ear antenna, cozy 1980s Turkish living room, lace doilies, patterned carpet, glass vitrine",
    "char": {
     "age": "baby",
     "pos": "none"
@@ -45,7 +45,7 @@
    "text": "Evinizin baş köşesinde tüplü, tahta kasalı bir televizyon duruyor. Ama bu televizyonda seçecek pek bir şey yok: tek bir kanal var, TRT."
   },
   {
-   "bg": "bulky old CRT tube television with rabbit ear antenna showing a color bar test pattern on screen in a dim 1980s living room at night, wooden cabinet, lamp light, no people",
+   "bg": "one small boxy square wooden tube television with rabbit ears, color bar test pattern on its curved screen, dim 1980s room at night, lamp light",
    "char": {
     "age": "baby",
     "pos": "none"
@@ -196,7 +196,7 @@
   {
    "chapter": "Ekran Renkleniyor",
    "year": "90'LAR",
-   "bg": "a 1990s living room at night, bulky old CRT tube television glowing with colorful light, a satellite dish visible through the window on the balcony, no people",
+   "bg": "one small boxy square tube television glowing, 1990s Turkish living room at night, satellite dish on the balcony outside the window",
    "char": {
     "age": "kid",
     "shirt": "#F2A33A",
@@ -206,7 +206,7 @@
    "text": "Doksanlarda televizyon hayatın merkezine oturuyor. 1990'da ilk özel kanal yayına başlıyor ve kısa süre içinde kanallar çoğalıyor."
   },
   {
-   "bg": "a television remote control and a bowl of sunflower seeds on a coffee table, glowing bulky old CRT tube television in the background, family room at night, no people",
+   "bg": "a bowl of sunflower seeds and a remote on a coffee table, one small boxy square tube television glowing behind, 1990s family room at night",
    "char": {
     "age": "kid",
     "shirt": "#F2A33A",
@@ -314,7 +314,7 @@
    "text": "Biraz büyüyünce mahallede atari salonları dikkatini çeker. Harçlığın jetona dönüşür, en iyi oyuncunun arkasında kalabalık birikir."
   },
   {
-   "bg": "a home television connected to a game console with two controllers and cartridges on a carpet, 1990s living room, no people",
+   "bg": "one small boxy square tube television, an old cartridge game console with two wired controllers on a carpet, 1990s living room",
    "char": {
     "age": "kid",
     "shirt": "#16A085",
