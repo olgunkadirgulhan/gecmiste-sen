@@ -109,26 +109,38 @@ def voice_path(i):
     return os.path.join(CACHE, f"v_{i:03d}.wav")
 
 
-def cmd_voice(script):
+def tts(text, wav):
+    """Tek cümleyi seslendirir, baş/son sessizliği kırpar."""
     import edge_tts
+    mp3 = wav[:-4] + ".mp3"
+    for attempt in range(4):
+        try:
+            asyncio.run(edge_tts.Communicate(text, VOICE, rate=RATE).save(mp3))
+            if os.path.getsize(mp3) > 1000:
+                break
+        except Exception as e:
+            print("tts retry", e, flush=True)
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", mp3, "-af",
+                    "silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
+                    "silenceremove=start_periods=1:start_threshold=-50dB,areverse",
+                    "-ar", str(SR), "-ac", "1", wav], check=True)
+    return read_wav(wav)
+
+
+def cmd_voice(script):
+    from say import chunks
     os.makedirs(CACHE, exist_ok=True)
     durs = []
     for i, sc in enumerate(script["scenes"]):
-        out = voice_path(i)
-        mp3 = out[:-4] + ".mp3"
-        for attempt in range(4):
-            try:
-                asyncio.run(edge_tts.Communicate(sc["text"], VOICE, rate=RATE).save(mp3))
-                if os.path.getsize(mp3) > 2000:
-                    break
-            except Exception as e:
-                print("tts retry", i, e, flush=True)
-        subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", mp3, "-af",
-                        "silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
-                        "silenceremove=start_periods=1:start_threshold=-50dB,areverse",
-                        "-ar", str(SR), "-ac", "1", out], check=True)
-        with wave.open(out) as w:
-            durs.append(w.getnframes() / w.getframerate())
+        parts = []
+        for k, (sent, gap) in enumerate(chunks(sc["text"])):
+            parts.append(tts(sent, os.path.join(CACHE, f"s_{i:03d}_{k}.wav")))
+            parts.append(np.zeros(int(gap * SR), np.float32))
+        a = np.concatenate(parts[:-1])  # son sessizliği sahne geçişi zaten veriyor
+        with wave.open(voice_path(i), "w") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+            w.writeframes((np.clip(a, -1, 1) * 32767).astype(np.int16).tobytes())
+        durs.append(len(a) / SR)
         print("voice", i, round(durs[-1], 2), flush=True)
     with open(os.path.join(CACHE, "durations.json"), "w") as f:
         json.dump(durs, f)

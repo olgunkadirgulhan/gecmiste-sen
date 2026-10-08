@@ -2,7 +2,7 @@ name: test
 # Her kod değişikliğinde hızlı duman testi: ilk 3 sahne, görselsiz (degrade), ses + kurgu uçtan uca.
 on:
   push:
-    paths: ["make.py", "bank/**", ".github/workflows/**"]
+    paths: ["make.py", "say.py", "bank/**", ".github/workflows/**"]
   workflow_dispatch:
 jobs:
   smoke:
