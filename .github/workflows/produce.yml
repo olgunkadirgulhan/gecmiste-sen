@@ -11,6 +11,10 @@ on:
         description: "Görselleri yeniden üretme: bu run id'sinin img-* artifact'larını kullan (boş = üret)"
         required: false
         default: ""
+      voice:
+        description: "Anlatıcı sesi (gemini:<ses> veya edge sesi)"
+        required: false
+        default: "gemini:Charon"
 
 permissions:
   contents: read
@@ -70,6 +74,9 @@ jobs:
           run-id: ${{ inputs.images_from || github.run_id }}
           github-token: ${{ github.token }}
       - run: python make.py voice "${{ inputs.script }}"
+        env:
+          VOICE: ${{ inputs.voice }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - run: python make.py render "${{ inputs.script }}"
       - uses: actions/upload-artifact@v5
         with:
