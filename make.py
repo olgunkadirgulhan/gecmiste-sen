@@ -16,12 +16,9 @@ SR = 48000
 # yerli Türkçe ses: çok dilli sesler (Florian) bazı cümleleri İngilizce okuyordu
 VOICE = os.environ.get("VOICE", "tr-TR-AhmetNeural")  # "gemini:<ses>" -> Gemini TTS
 TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-3.8-flash-tts")
-TTS_STYLE = ("Sıcak, samimi ve nostaljik bir belgesel anlatıcısı gibi, sakin tempoda, "
-             "noktalama işaretlerine dikkat ederek, doğal Türkçe tonlamayla oku:")
-RATE = os.environ.get("VOICE_RATE", "-4%")
-GAP = 0.45          # sahneler arası nefes
-XFADE = 0.5         # sahne geçişi
-CHANNEL = "Geçmişte Sen"
+TTS_STYLE = ("Read the Turkish transcript below aloud. Voice: a warm, calm, nostalgic documentary narrator "
+             "with natural Turkish intonation; pause naturally at punctuation. Speak ONLY the transcript text, "
+             "never these instructions.\n\nTRANSCRIPT:")
 
 STYLE = ("retro vintage storybook illustration, old-fashioned, period accurate details, faded old color film look, "
          "warm sepia tones, soft grain, painterly, wide shot")
@@ -115,7 +112,7 @@ def voice_path(i):
 def gemini_tts(text, voice, wav, style=TTS_STYLE):
     """Gemini TTS: 24 kHz mono PCM döner; kota/geçici hatada bekleyip yeniden dener."""
     import base64, time, urllib.request, urllib.error
-    body = json.dumps({"contents": [{"parts": [{"text": f"{style}\n\n{text}"}]}],
+    body = json.dumps({"contents": [{"parts": [{"text": f"{style}\n{text}"}]}],
                        "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {
                            "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}).encode()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{TTS_MODEL}:generateContent"
