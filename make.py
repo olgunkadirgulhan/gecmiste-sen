@@ -14,7 +14,9 @@ OUT = os.path.join(HERE, "out")
 W, H, FPS = 1920, 1080, 30
 SR = 48000
 # yerli Türkçe ses: çok dilli sesler (Florian) bazı cümleleri İngilizce okuyordu
-VOICE = os.environ.get("VOICE", "tr-TR-AhmetNeural")  # "gemini:<ses>" -> Gemini TTS
+# İlk videolarda sesler sırayla denenir; izlenme süresi en iyi olan kalıcı ses olur (bkz. voice_for)
+ROTATION = ["gemini:Charon", "gemini:Sadaltager", "gemini:Sulafat"]
+VOICE = os.environ.get("VOICE") or ""  # "gemini:<ses>" -> Gemini TTS, boş -> sıradaki ses
 TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-3.8-flash-tts")
 TTS_STYLE = ("Read the Turkish transcript below aloud. Voice: a warm, calm, nostalgic documentary narrator "
              "with natural Turkish intonation; pause naturally at punctuation. Speak ONLY the transcript text, "
@@ -159,6 +161,12 @@ def tts(text, wav):
                     "silenceremove=start_periods=1:start_threshold=-50dB,areverse",
                     "-ar", str(SR), "-ac", "1", wav], check=True)
     return read_wav(wav)
+
+
+def voice_for(path):
+    """bank/003_... -> 3. video -> ROTATION[(3-1) % 3]."""
+    m = re.match(r"(\d+)", os.path.basename(path))
+    return ROTATION[(int(m.group(1)) - 1) % len(ROTATION)] if m else ROTATION[0]
 
 
 def cmd_voice(script):
@@ -555,7 +563,8 @@ def cmd_render(script):
     if p.wait():
         sys.exit("ffmpeg failed")
     thumbnail(script, skin, hair)
-    meta = dict(title=script["title"], description=description(script, tl), tags=script.get("tags", []), duration=total)
+    meta = dict(title=script["title"], description=description(script, tl), tags=script.get("tags", []), duration=total,
+                voice=open(os.path.join(CACHE, "voice.txt")).read() if os.path.exists(os.path.join(CACHE, "voice.txt")) else VOICE)
     json.dump(meta, open(os.path.join(OUT, "meta.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("done", round(total, 1), "s")
 
@@ -599,6 +608,10 @@ if __name__ == "__main__":
         a = sys.argv
         cmd_images(s, int(a[a.index("--part") + 1]), int(a[a.index("--of") + 1]))
     elif cmd == "voice":
+        VOICE = VOICE or voice_for(path)
+        print("narrator", VOICE, flush=True)
+        os.makedirs(CACHE, exist_ok=True)
+        open(os.path.join(CACHE, "voice.txt"), "w").write(VOICE)
         cmd_voice(s)
     elif cmd == "render":
         cmd_render(s)

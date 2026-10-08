@@ -12,9 +12,9 @@ on:
         required: false
         default: ""
       voice:
-        description: "Anlatıcı sesi (gemini:<ses> veya edge sesi)"
+        description: "Anlatıcı sesi (boş = sıradaki deneme sesi; gemini:<ses> veya edge sesi)"
         required: false
-        default: "gemini:Charon"
+        default: ""
 
 permissions:
   contents: read

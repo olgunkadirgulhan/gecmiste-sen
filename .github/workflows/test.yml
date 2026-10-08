@@ -10,6 +10,7 @@ jobs:
     timeout-minutes: 20
     env:
       QUICK: "1"
+      VOICE: tr-TR-AhmetNeural  # duman testi Gemini kotasını harcamasın
       PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v5
