@@ -14,7 +14,10 @@ OUT = os.path.join(HERE, "out")
 W, H, FPS = 1920, 1080, 30
 SR = 48000
 # yerli Türkçe ses: çok dilli sesler (Florian) bazı cümleleri İngilizce okuyordu
-VOICE = os.environ.get("VOICE", "tr-TR-AhmetNeural")
+VOICE = os.environ.get("VOICE", "tr-TR-AhmetNeural")  # "gemini:<ses>" -> Gemini TTS
+TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-3.8-flash-tts")
+TTS_STYLE = ("Sıcak, samimi ve nostaljik bir belgesel anlatıcısı gibi, sakin tempoda, "
+             "noktalama işaretlerine dikkat ederek, doğal Türkçe tonlamayla oku:")
 RATE = os.environ.get("VOICE_RATE", "-4%")
 GAP = 0.45          # sahneler arası nefes
 XFADE = 0.5         # sahne geçişi
@@ -109,8 +112,42 @@ def voice_path(i):
     return os.path.join(CACHE, f"v_{i:03d}.wav")
 
 
+def gemini_tts(text, voice, wav, style=TTS_STYLE):
+    """Gemini TTS: 24 kHz mono PCM döner; kota/geçici hatada bekleyip yeniden dener."""
+    import base64, time, urllib.request, urllib.error
+    body = json.dumps({"contents": [{"parts": [{"text": f"{style}\n\n{text}"}]}],
+                       "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {
+                           "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}).encode()
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{TTS_MODEL}:generateContent"
+    for attempt in range(8):
+        req = urllib.request.Request(url, body, {"Content-Type": "application/json",
+                                                 "x-goog-api-key": os.environ["GEMINI_API_KEY"]})
+        try:
+            with urllib.request.urlopen(req, timeout=180) as r:
+                part = json.load(r)["candidates"][0]["content"]["parts"][0]
+            pcm = base64.b64decode(part["inlineData"]["data"])
+            break
+        except (urllib.error.HTTPError, urllib.error.URLError, KeyError, TimeoutError) as e:
+            msg = e.read().decode()[:300] if isinstance(e, urllib.error.HTTPError) else str(e)
+            print("gemini retry", attempt, msg, flush=True)
+            time.sleep(min(90, 10 * 2 ** attempt))
+    else:
+        raise SystemExit("gemini tts failed")
+    with wave.open(wav, "w") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000)
+        w.writeframes(pcm)
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", wav, "-af",
+                    "silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
+                    "silenceremove=start_periods=1:start_threshold=-50dB,areverse",
+                    "-ar", str(SR), "-ac", "1", wav[:-4] + "_t.wav"], check=True)
+    os.replace(wav[:-4] + "_t.wav", wav)
+    return read_wav(wav)
+
+
 def tts(text, wav):
     """Tek cümleyi seslendirir, baş/son sessizliği kırpar."""
+    if VOICE.startswith("gemini:"):
+        return gemini_tts(text, VOICE[7:], wav)
     import edge_tts
     mp3 = wav[:-4] + ".mp3"
     for attempt in range(4):
@@ -133,7 +170,9 @@ def cmd_voice(script):
     durs = []
     for i, sc in enumerate(script["scenes"]):
         parts = []
-        for k, (sent, gap) in enumerate(chunks(sc["text"])):
+        if VOICE.startswith("gemini:"):  # sahne tek seferde: tonlama doğal, istek sayısı az
+            parts = [tts(" ".join(c for c, _ in chunks(sc["text"])), os.path.join(CACHE, f"s_{i:03d}.wav")), None]
+        for k, (sent, gap) in enumerate([] if parts else chunks(sc["text"])):
             parts.append(tts(sent, os.path.join(CACHE, f"s_{i:03d}_{k}.wav")))
             parts.append(np.zeros(int(gap * SR), np.float32))
         a = np.concatenate(parts[:-1])  # son sessizliği sahne geçişi zaten veriyor
