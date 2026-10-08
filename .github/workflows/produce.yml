@@ -11,6 +11,10 @@ on:
         description: "Görselleri yeniden üretme: bu run id'sinin img-* artifact'larını kullan (boş = üret)"
         required: false
         default: ""
+      voice_from:
+        description: "Sesi yeniden üretme: bu run id'sinin voice artifact'ını kullan (boş = üret)"
+        required: false
+        default: ""
       voice:
         description: "Anlatıcı sesi (boş = sıradaki deneme sesi; gemini:<ses> veya edge sesi)"
         required: false
@@ -73,10 +77,26 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.images_from || github.run_id }}
           github-token: ${{ github.token }}
-      - run: python make.py voice "${{ inputs.script }}"
+      - if: inputs.voice_from != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: voice
+          path: cache
+          run-id: ${{ inputs.voice_from }}
+          github-token: ${{ github.token }}
+      - if: inputs.voice_from == ''
+        run: python make.py voice "${{ inputs.script }}"
         env:
           VOICE: ${{ inputs.voice }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - if: inputs.voice_from == ''
+        uses: actions/upload-artifact@v5
+        with:
+          name: voice
+          path: |
+            cache/v_*.wav
+            cache/durations.json
+            cache/voice.txt
       - run: python make.py render "${{ inputs.script }}"
       - uses: actions/upload-artifact@v5
         with:

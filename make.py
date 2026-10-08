@@ -127,8 +127,10 @@ def gemini_tts(text, voice, wav, style=TTS_STYLE):
             pcm = base64.b64decode(part["inlineData"]["data"])
             break
         except (urllib.error.HTTPError, urllib.error.URLError, KeyError, TimeoutError) as e:
-            msg = e.read().decode()[:300] if isinstance(e, urllib.error.HTTPError) else str(e)
+            msg = e.read().decode()[:1500] if isinstance(e, urllib.error.HTTPError) else str(e)
             print("gemini retry", attempt, msg, flush=True)
+            if "PerDay" in msg:  # günlük kota bitti: beklemek boşuna
+                raise SystemExit("gemini daily quota exhausted")
             time.sleep(min(90, 10 * 2 ** attempt))
     else:
         raise SystemExit("gemini tts failed")
@@ -141,6 +143,60 @@ def gemini_tts(text, voice, wav, style=TTS_STYLE):
                     "-ar", str(SR), "-ac", "1", wav[:-4] + "_t.wav"], check=True)
     os.replace(wav[:-4] + "_t.wav", wav)
     return read_wav(wav)
+
+
+def gemini_scenes(texts, voice, max_chars=900):
+    """Ücretsiz kota günde az istek veriyor: birkaç sahne tek istekte okunur, ses paragraf
+    aralarındaki en uzun sessizliklerden sahnelere bölünür."""
+    groups, cur = [], []
+    for i, t in enumerate(texts):
+        if cur and sum(len(texts[j]) for j in cur) + len(t) > max_chars:
+            groups.append(cur); cur = []
+        cur.append(i)
+    groups.append(cur)
+    style = TTS_STYLE.replace("\n\nTRANSCRIPT:", " Leave a clear pause of about two seconds between paragraphs."
+                              "\n\nTRANSCRIPT:")
+    out = {}
+    for g, idx in enumerate(groups):
+        a = gemini_tts("\n\n".join(texts[i] for i in idx), voice, os.path.join(CACHE, f"g_{g:02d}.wav"), style)
+        print("gemini group", g, len(idx), "scenes", round(len(a) / SR, 1), "s", flush=True)
+        for i, piece in zip(idx, split_at_pauses(a, [len(texts[i]) for i in idx])):
+            out[i] = piece
+    return out
+
+
+def split_at_pauses(a, lens):
+    """Sesi len(lens) parçaya böler: her sınır, metin uzunluğuna göre beklenen yere en yakın uzun sessizlikte."""
+    if len(lens) == 1:
+        return [a]
+    fr = SR // 50
+    rms = np.sqrt(np.mean(a[:len(a) // fr * fr].reshape(-1, fr) ** 2, axis=1) + 1e-12)
+    quiet = rms < max(rms.max() * 0.03, 1e-4)
+    runs, k = [], 0
+    while k < len(quiet):
+        if quiet[k]:
+            e = k
+            while e < len(quiet) and quiet[e]:
+                e += 1
+            if e - k >= 12:  # >= 0.24 sn
+                runs.append((k, e))
+            k = e
+        k += 1
+    total = len(rms)
+    cuts, used = [], set()
+    for b in range(1, len(lens)):
+        t = total * sum(lens[:b]) / sum(lens)
+        win = max(200, total * 0.12)  # 4 sn ya da %12
+        cand = [(e - k) - 0.03 * abs((k + e) / 2 - t) for k, e in runs]
+        best = max((c, r) for c, r in zip(cand, runs) if abs((r[0] + r[1]) / 2 - t) < win and r not in used)
+        used.add(best[1])
+        cuts.append(int((best[1][0] + best[1][1]) / 2) * fr)
+    pieces = np.split(a, sorted(cuts))
+    out = []
+    for p in pieces:  # baş/son sessizliği kırp
+        loud = np.nonzero(np.abs(p) > 0.01)[0]
+        out.append(p[max(0, loud[0] - SR // 50):loud[-1] + SR // 20] if len(loud) else p)
+    return out
 
 
 def tts(text, wav):
@@ -172,11 +228,13 @@ def voice_for(path):
 def cmd_voice(script):
     from say import chunks
     os.makedirs(CACHE, exist_ok=True)
+    if VOICE.startswith("gemini:"):
+        gem = gemini_scenes([" ".join(c for c, _ in chunks(sc["text"])) for sc in script["scenes"]], VOICE[7:])
     durs = []
     for i, sc in enumerate(script["scenes"]):
         parts = []
-        if VOICE.startswith("gemini:"):  # sahne tek seferde: tonlama doğal, istek sayısı az
-            parts = [tts(" ".join(c for c, _ in chunks(sc["text"])), os.path.join(CACHE, f"s_{i:03d}.wav")), None]
+        if VOICE.startswith("gemini:"):
+            parts = [gem[i], None]
         for k, (sent, gap) in enumerate([] if parts else chunks(sc["text"])):
             parts.append(tts(sent, os.path.join(CACHE, f"s_{i:03d}_{k}.wav")))
             parts.append(np.zeros(int(gap * SR), np.float32))
