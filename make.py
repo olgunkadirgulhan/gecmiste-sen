@@ -138,8 +138,11 @@ def gemini_tts(text, voice, wav, style=TTS_STYLE):
             time.sleep(min(90, 10 * 2 ** attempt))
     else:
         raise SystemExit("gemini tts failed")
+    rate = 24000
+    if pcm[:4] == b"RIFF":  # yeni modeller tam WAV döndürür: başlık + sonda C2PA etiketi -> yalnız "data" bölümü
+        pcm, rate = wav_data(pcm)
     with wave.open(wav, "w") as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000)
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate)
         w.writeframes(pcm)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", wav, "-af",
                     "silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
@@ -162,8 +165,12 @@ def gemini_scenes(texts, voice, max_chars=900):
                               "\n\nTRANSCRIPT:")
     out = {}
     for g, idx in enumerate(groups):
-        a = gemini_tts("\n\n".join(texts[i] for i in idx), voice, os.path.join(CACHE, f"g_{g:02d}.wav"), style)
-        print("gemini group", g, len(idx), "scenes", round(len(a) / SR, 1), "s", flush=True)
+        for attempt in range(3):  # Gemini ara sıra cızırtılı ses üretiyor: o grubu yeniden iste
+            a = gemini_tts("\n\n".join(texts[i] for i in idx), voice, os.path.join(CACHE, f"g_{g:02d}.wav"), style)
+            bad = bursts(a)
+            print("gemini group", g, len(idx), "scenes", round(len(a) / SR, 1), "s, bursts", len(bad), flush=True)
+            if not bad:
+                break
         for i, piece in zip(idx, split_at_pauses(a, [len(texts[i]) for i in idx])):
             out[i] = piece
     return out
@@ -200,6 +207,63 @@ def split_at_pauses(a, lens):
     for p in pieces:  # baş/son sessizliği kırp
         loud = np.nonzero(np.abs(p) > 0.01)[0]
         out.append(p[max(0, loud[0] - SR // 50):loud[-1] + SR // 20] if len(loud) else p)
+    return out
+
+
+def wav_data(b):
+    """RIFF baytlarından (pcm, örnekleme hızı); diğer bölümler (LIST, C2PA...) atlanır."""
+    import struct
+    rate, k = 24000, 12
+    while k + 8 <= len(b):
+        cid, size = b[k:k + 4], struct.unpack("<I", b[k + 4:k + 8])[0]
+        if cid == b"fmt ":
+            rate = struct.unpack("<I", b[k + 12:k + 16])[0]
+        if cid == b"data":
+            size = min(size, len(b) - k - 8)
+            return b[k + 8:k + 8 + size - size % 2], rate
+        k += 8 + size + (size & 1)
+    raise ValueError("WAV içinde data bölümü yok")
+
+
+def bursts(a, sr=None):
+    """Dijital cızırtı aralıkları [(başlangıç, bitiş) örnek]: 50 ms'de 20+ sert sıçrama (|Δ|>0.4)."""
+    sr = sr or SR
+    jump = np.abs(np.diff(a)) > 0.4
+    w = sr // 20
+    dense = np.convolve(jump.astype(np.float32), np.ones(w), mode="same") >= 20
+    out, k = [], 0
+    idx = np.nonzero(dense)[0]
+    while k < len(idx):
+        st = idx[k]
+        while k + 1 < len(idx) and idx[k + 1] - idx[k] < w:
+            k += 1
+        out.append((max(0, st - w // 2), min(len(a), idx[k] + w // 2)))
+        k += 1
+    return out
+
+
+def strip_noise(a):
+    """Eski seslerde ham bayt olarak okunmuş WAV başlığı / C2PA etiketini kenarlardan atar. Rastgele baytlar
+    komşu örnekler arasında çok sert sıçrama yapar (konuşmada neredeyse hiç olmaz): 50 ms'de 20+ sıçrama = çöp."""
+    jump = np.abs(np.diff(a)) > 0.4
+    w = SR // 20
+    dense = np.convolve(jump.astype(np.float32), np.ones(w), mode="same") >= 20
+    s, e = 0, len(a)
+    head = np.nonzero(jump[:SR // 100])[0]
+    if len(head) >= 5:
+        s = head[-1] + 1
+    tail = np.nonzero(dense[max(0, len(a) - int(1.5 * SR)):])[0]
+    if len(tail):
+        e = max(0, len(a) - int(1.5 * SR)) + max(0, tail[0] - w // 2)
+    out = a[s:e].copy()
+    for k0, k1 in bursts(out):  # ortadaki cızırtı patlamaları: 20 ms yumuşak geçişle sustur
+        g = np.ones(k1 - k0, np.float32); r = min(len(g) // 2, SR // 50)
+        if r:
+            g[:r] = np.linspace(1, 0, r); g[-r:] = np.linspace(0, 1, r)
+        out[k0:k1] *= 1 - g
+    f = min(len(out) // 2, SR // 100)
+    if f:
+        out[:f] *= np.linspace(0, 1, f); out[-f:] *= np.linspace(1, 0, f)
     return out
 
 
@@ -493,7 +557,7 @@ def cmd_render(script):
     vo = np.zeros(int(total * SR) + SR, np.float32)
     duck = np.ones_like(vo)
     for seg in tl:
-        x = read_wav(voice_path(seg["i"]))
+        x = strip_noise(read_wav(voice_path(seg["i"])))
         a = int(seg["v0"] * SR)
         vo[a:a + len(x)] += x
         duck[max(0, a - SR // 4):a + len(x) + SR // 4] = 0.45
