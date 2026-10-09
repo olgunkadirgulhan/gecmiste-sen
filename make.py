@@ -21,6 +21,10 @@ TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-3.8-flash-tts")
 TTS_STYLE = ("Read the Turkish transcript below aloud. Voice: a warm, calm, nostalgic documentary narrator "
              "with natural Turkish intonation; pause naturally at punctuation. Speak ONLY the transcript text, "
              "never these instructions.\n\nTRANSCRIPT:")
+RATE = os.environ.get("VOICE_RATE", "-4%")
+GAP = 0.45          # sahneler arası nefes
+XFADE = 0.5         # sahne geçişi
+CHANNEL = "Geçmişte Sen"
 
 STYLE = ("retro vintage storybook illustration, old-fashioned, period accurate details, faded old color film look, "
          "warm sepia tones, soft grain, painterly, wide shot")
