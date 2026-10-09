@@ -226,7 +226,8 @@ def wav_data(b):
 
 
 def bursts(a, sr=None):
-    """Dijital cızırtı aralıkları [(başlangıç, bitiş) örnek]: 50 ms'de 20+ sert sıçrama (|Δ|>0.4)."""
+    """Dijital cızırtı aralıkları [(başlangıç, bitiş) örnek]: 50 ms'de 20+ sert sıçrama (|Δ|>0.4) VE düz spektrum
+    (yüksek sesli normal heceler de sert sıçrar ama spektrumları tonal)."""
     sr = sr or SR
     jump = np.abs(np.diff(a)) > 0.4
     w = sr // 20
@@ -237,7 +238,11 @@ def bursts(a, sr=None):
         st = idx[k]
         while k + 1 < len(idx) and idx[k + 1] - idx[k] < w:
             k += 1
-        out.append((max(0, st - w // 2), min(len(a), idx[k] + w // 2)))
+        k0, k1 = max(0, st - w // 2), min(len(a), idx[k] + w // 2)
+        x = a[k0:k1]
+        X = np.abs(np.fft.rfft(x * np.hanning(len(x)))) + 1e-9
+        if np.exp(np.log(X).mean()) / X.mean() > 0.2:  # düz (beyaz) spektrum = cızırtı; konuşma ~0.02
+            out.append((k0, k1))
         k += 1
     return out
 
@@ -245,16 +250,14 @@ def bursts(a, sr=None):
 def strip_noise(a):
     """Eski seslerde ham bayt olarak okunmuş WAV başlığı / C2PA etiketini kenarlardan atar. Rastgele baytlar
     komşu örnekler arasında çok sert sıçrama yapar (konuşmada neredeyse hiç olmaz): 50 ms'de 20+ sıçrama = çöp."""
-    jump = np.abs(np.diff(a)) > 0.4
-    w = SR // 20
-    dense = np.convolve(jump.astype(np.float32), np.ones(w), mode="same") >= 20
+    jump = np.abs(np.diff(a[:SR // 100])) > 0.4
     s, e = 0, len(a)
-    head = np.nonzero(jump[:SR // 100])[0]
-    if len(head) >= 5:
+    head = np.nonzero(jump)[0]
+    if len(head) >= 5:  # WAV başlığı (~1 ms)
         s = head[-1] + 1
-    tail = np.nonzero(dense[max(0, len(a) - int(1.5 * SR)):])[0]
-    if len(tail):
-        e = max(0, len(a) - int(1.5 * SR)) + max(0, tail[0] - w // 2)
+    tail = [k0 for k0, _ in bursts(a) if k0 > len(a) - int(1.5 * SR)]
+    if tail:  # sondaki etiket
+        e = tail[0]
     out = a[s:e].copy()
     for k0, k1 in bursts(out):  # ortadaki cızırtı patlamaları: 20 ms yumuşak geçişle sustur
         g = np.ones(k1 - k0, np.float32); r = min(len(g) // 2, SR // 50)
