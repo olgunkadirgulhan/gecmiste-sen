@@ -121,7 +121,7 @@ def gemini_tts(text, voice, wav, style=TTS_STYLE):
     body = json.dumps({"contents": [{"parts": [{"text": f"{style}\n{text}"}]}],
                        "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {
                            "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}).encode()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{TTS_MODEL}:generateContent"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{globals()['TTS_MODEL']}:generateContent"
     for attempt in range(8):
         req = urllib.request.Request(url, body, {"Content-Type": "application/json",
                                                  "x-goog-api-key": os.environ["GEMINI_API_KEY"]})

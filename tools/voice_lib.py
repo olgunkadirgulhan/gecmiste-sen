@@ -107,6 +107,8 @@ def save(x, path):
         w.writeframes((np.clip(x / (np.abs(x).max() + 1e-9) * 0.95, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
+MODELS = ['gemini-3.8-flash-tts', 'gemini-2.5-flash-preview-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-pro-preview-tts',
+          'gemini-3.8-flash-lite-tts']
 for job in filter(None, os.environ.get('JOBS', '').split(',')):
     if job.startswith('ex-'):
         voice, kind = job[3:], 'ex'
@@ -117,7 +119,15 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
         keys = list(LINES)
         items = [(k, kind, LINES[k][0 if kind == 'N' else 1]) for k in keys]
         texts = [t for _, _, t in items]; thr = 0.5
-    a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job}.wav', STYLE[kind])
+    a = None
+    while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
+        make.TTS_MODEL = MODELS[0]
+        try:
+            a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job}.wav', STYLE[kind]); break
+        except SystemExit as e:
+            print(f'{MODELS[0]}: {e} -> sonraki model', flush=True); MODELS.pop(0)
+    if a is None:
+        print('tüm modellerin kotası dolu', flush=True); break
     got = align(a, texts, thr)
     man = {}
     for li, (k, n, t) in enumerate(items):
@@ -126,4 +136,4 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
             path = f'out/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'out/{voice}/lines/{k}_{n}.wav'
             save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
     json.dump(man, open(f'out/manifest_{job}.json', 'w'), indent=1, ensure_ascii=False)
-    print(f'{job}: {len(man)}/{len(items)} clips ok, audio {round(len(a) / make.SR)} s', flush=True)
+    print(f'{job}: {len(man)}/{len(items)} clips ok, audio {round(len(a) / make.SR)} s, model {make.TTS_MODEL}', flush=True)
