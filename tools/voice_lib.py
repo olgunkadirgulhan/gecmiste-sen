@@ -139,8 +139,15 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     else:
         voice, kind = job_name.split('-')
         keys = list(LINES)
-        items = [(k, kind, LINES[k][0 if kind == 'N' else 1]) for k in keys
-                 if f'{root}/{voice}/lines/{k}_{kind}.wav' not in prev]
+        if kind in ('N', 'P'):
+            items = [(k, kind, LINES[k][0 if kind == 'N' else 1]) for k in keys]
+        elif kind == 'C':   # karakter sözleri: kız karakterler Zephyr, diğerleri Puck
+            fem = NS[repo].get('FEMALE', set())
+            items = [(f'catch_{c}', '', t) for c, t in NS[repo]['CATCH'].items() if (c in fem) == (voice == 'Zephyr')]
+        else:               # 'N2', 'P3' ...: ek varyantlar (MORE)
+            items = [(k, kind, NS[repo]['MORE'][k][0 if kind[0] == 'N' else 1][int(kind[1]) - 2]) for k in NS[repo]['MORE']]
+        items = [it for it in items if f'{root}/{voice}/lines/{it[0]}{"_" + it[1] if it[1] else ""}.wav' not in prev]
+        kind = kind if kind in ('N', 'P', 'C') else kind[0]
         texts = [t for _, _, t in items]; thr = 0.65
     if not items:
         print(f'{job}: hepsi önceden hazır', flush=True); continue
@@ -148,7 +155,7 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
         make.TTS_MODEL = MODELS[0]
         try:
-            a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job.replace(":", "_")}.wav', STYLE.get(f'{repo}-{kind}', STYLE[kind])); break
+            a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job.replace(":", "_")}.wav', STYLE.get(f'{repo}-{kind}', STYLE.get(kind, STYLE['N']))); break
         except SystemExit as e:
             print(f'{MODELS[0]}: {e} -> sonraki model', flush=True); MODELS.pop(0)
     if a is None:
@@ -158,7 +165,7 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     for li, (k, n, t) in enumerate(items):
         if li in got:
             x, hd, r = got[li]
-            path = f'{root}/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'{root}/{voice}/lines/{k}_{n}.wav'
+            path = f'{root}/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'{root}/{voice}/lines/{k}{"_" + n if n else ""}.wav'
             save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
     json.dump(man, open(f'out/manifest_{job.replace(":", "_")}.json', 'w'), indent=1, ensure_ascii=False)
     print(f'{job}: +{len(man) - len(prev)}/{len(items)} new clips, total {len(man)}, audio {round(len(a) / make.SR)} s, model {make.TTS_MODEL}', flush=True)
