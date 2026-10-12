@@ -13,13 +13,13 @@ exec(urllib.request.urlopen(urllib.request.Request(SRC, headers={'Accept': 'appl
 LINES, EXCLAIM = ns['LINES'], ns['EXCLAIM']
 STYLE = {
     'N': ("Read the transcript below aloud as a friendly, cheerful cartoon character with a polite, calm energy. "
-          "Each line is a separate reaction: leave a clear pause of about one second between lines. "
+          "Each line is a separate reaction: leave a clear pause of about two seconds between lines. "
           "Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:"),
     'P': ("Read the transcript below aloud as a hyperactive, chaotic, gleeful cartoon character, very over the top and "
           "funny, like an anime character losing control. Each line is a separate reaction: leave a clear pause of about "
-          "one second between lines. Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:"),
+          "two seconds between lines. Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:"),
     'ex': ("Perform the transcript below as a cute, energetic anime cartoon character, very expressive. Each line is a "
-           "separate exclamation: leave a clear pause of about one second between lines. Speak ONLY the transcript lines, "
+           "separate exclamation: leave a clear pause of about two seconds between lines. Speak ONLY the transcript lines, "
            "never these instructions.\n\nTRANSCRIPT:"),
 }
 from faster_whisper import WhisperModel
@@ -30,7 +30,7 @@ def norm(t):
     return re.sub(r'[^a-z]', '', t.lower())
 
 
-def segments(a, min_gap=0.6):  # satır arası ~1 sn, satır içi duraklar daha kısa
+def segments(a, min_gap=0.9):  # satır arası ~1 sn, satır içi duraklar daha kısa
     fr = make.SR // 100
     rms = np.sqrt(np.mean(a[:len(a) // fr * fr].reshape(-1, fr) ** 2, axis=1))
     loud = rms > rms.max() * 0.04
@@ -86,7 +86,7 @@ def align(a, texts, thr):
     for li, t in enumerate(texts):
         best = (0, None)
         for i in range(p, min(len(segs), p + 4)):
-            for j in (i, i + 1):
+            for j in (i, i + 1, i + 2):   # çılgın tonda replik 2-3 parçaya bölünebiliyor
                 if j < len(segs):
                     r = difflib.SequenceMatcher(None, norm(h(i, j)), norm(t)).ratio()
                     if r > best[0]: best = (r, (i, j))
@@ -109,15 +109,23 @@ def save(x, path):
 MODELS = ['gemini-3.8-flash-tts', 'gemini-2.5-flash-preview-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-pro-preview-tts',
           'gemini-3.8-flash-lite-tts']
 for job in filter(None, os.environ.get('JOBS', '').split(',')):
+    prev_m = f'prev/manifest_{job}.json'
+    prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
+    # önceki kliplerden yalnız güvenilir olanlar: replikte benzerlik ≥ 0.65, ünlemde sırayla eşleşmiş (ratio > 0)
+    prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= (0.65 if not job.startswith('ex-') else 0.01)}
     if job.startswith('ex-'):
         voice, kind = job[3:], 'ex'
-        items = [(k, n, t) for k, lst in EXCLAIM.items() for n, t in enumerate(lst, 1)]
+        items = [(k, n, t) for k, lst in EXCLAIM.items() for n, t in enumerate(lst, 1)
+                 if f'out/{voice}/ex/{k}_{n}.wav' not in prev]
         texts = [t for _, _, t in items]; thr = 0.25
     else:
         voice, kind = job.split('-')
         keys = list(LINES)
-        items = [(k, kind, LINES[k][0 if kind == 'N' else 1]) for k in keys]
-        texts = [t for _, _, t in items]; thr = 0.5
+        items = [(k, kind, LINES[k][0 if kind == 'N' else 1]) for k in keys
+                 if f'out/{voice}/lines/{k}_{kind}.wav' not in prev]
+        texts = [t for _, _, t in items]; thr = 0.65
+    if not items:
+        print(f'{job}: hepsi önceden hazır', flush=True); continue
     a = None
     while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
         make.TTS_MODEL = MODELS[0]
@@ -128,11 +136,11 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     if a is None:
         print('tüm modellerin kotası dolu', flush=True); break
     got = align(a, texts, thr)
-    man = {}
+    man = dict(prev)
     for li, (k, n, t) in enumerate(items):
         if li in got:
             x, hd, r = got[li]
             path = f'out/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'out/{voice}/lines/{k}_{n}.wav'
             save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
     json.dump(man, open(f'out/manifest_{job}.json', 'w'), indent=1, ensure_ascii=False)
-    print(f'{job}: {len(man)}/{len(items)} clips ok, audio {round(len(a) / make.SR)} s, model {make.TTS_MODEL}', flush=True)
+    print(f'{job}: +{len(man) - len(prev)}/{len(items)} new clips, total {len(man)}, audio {round(len(a) / make.SR)} s, model {make.TTS_MODEL}', flush=True)

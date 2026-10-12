@@ -4,6 +4,12 @@ on:
     inputs:
       jobs:
         default: "Puck-N,Puck-P,Leda-N,Leda-P"
+      prev_run:
+        description: "Önceki voice-lib run id: hazır klipler korunur, sadece eksikler üretilir"
+        default: ""
+permissions:
+  actions: read
+  contents: read
 jobs:
   v:
     runs-on: ubuntu-latest
@@ -15,7 +21,14 @@ jobs:
           python-version: "3.12"
       - run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
       - run: pip install numpy pillow faster-whisper
-      - run: mkdir -p out && python tools/voice_lib.py
+      - if: inputs.prev_run != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: voice-lib
+          path: out
+          run-id: ${{ inputs.prev_run }}
+          github-token: ${{ github.token }}
+      - run: mkdir -p out prev && (cp out/manifest_*.json prev/ 2>/dev/null || true) && python tools/voice_lib.py
         env:
           JOBS: ${{ inputs.jobs }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
