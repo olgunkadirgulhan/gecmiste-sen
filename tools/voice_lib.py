@@ -48,12 +48,11 @@ def segments(a, min_gap=0.6):  # satır arası ~1 sn, satır içi duraklar daha 
 
 
 def heard(x):
-    path = '/tmp/_seg.wav'
-    with wave.open(path, 'w') as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(make.SR)
-        pad = np.zeros(make.SR // 2)  # çok kısa klipte Whisper şaşırıyor: yarım saniye sessizlik ekle
-        w.writeframes((np.clip(np.concatenate([pad, x, pad]), -1, 1) * 32767).astype(np.int16).tobytes())
-    s, _ = ASR.transcribe(path, language='en', without_timestamps=True)
+    """Whisper'a 16 kHz float dizi verilir (dosya/av kütüphanesi gerekmez); kısa klibe yarım saniye sessizlik eklenir."""
+    pad = np.zeros(make.SR // 2)
+    y = np.concatenate([pad, x, pad])
+    y = np.interp(np.arange(0, len(y), make.SR / 16000), np.arange(len(y)), y).astype(np.float32)
+    s, _ = ASR.transcribe(y, language='en', without_timestamps=True)
     return ' '.join(t.text for t in s).strip()
 
 
