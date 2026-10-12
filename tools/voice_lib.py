@@ -125,8 +125,40 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     repo, job_name, root = 'bloop', job, 'out'
     if ':' in job:
         repo, job_name = job.split(':', 1); root = f'out/{repo}'
-        if repo not in NS: NS[repo] = lines_of({'paw': 'paw-rivals'}[repo])
+        if repo not in NS: NS[repo] = lines_of({'paw': 'paw-rivals', 'cw': 'countries-when'}[repo])
     LINES = NS[repo]['LINES']
+    if repo == 'cw':   # Countryball Chaos: 'cw:TR' → Türkiye'nin tüm replikleri, kendi sesi ve aksanıyla
+        code = job_name
+        voice, accent = NS['cw']['VOICE'][code]
+        prev_m = f'prev/manifest_{job.replace(":", "_")}.json'
+        prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
+        prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= 0.5}
+        items = [(sit, '', txt) for sit, (txt, mood) in LINES[code].items() if f'{root}/{code}/{sit}.wav' not in prev]
+        if not items:
+            print(f'{job}: hepsi önceden hazır', flush=True); continue
+        style = (f"Read the transcript below aloud as {accent} cartoon character with a clear {accent.split()[-1]} accent: "
+                 "fun, expressive and friendly. Each line is a separate reaction: leave a clear pause of about two seconds "
+                 "between lines. Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:")
+        texts = [t for _, _, t in items]
+        a = None
+        while MODELS:
+            make.TTS_MODEL = MODELS[0]
+            try:
+                a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/cw_{code}.wav', style); break
+            except SystemExit as e:
+                print(f'{MODELS[0]}: {e} -> sonraki model', flush=True); MODELS.pop(0)
+        if a is None:
+            print('tüm modellerin kotası dolu', flush=True); break
+        got = align(a, texts, 0.5)
+        man = dict(prev)
+        for li, (sit, _, t) in enumerate(items):
+            if li in got:
+                x, hd, r = got[li]
+                path = f'{root}/{code}/{sit}.wav'
+                save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
+        json.dump(man, open(f'out/manifest_{job.replace(":", "_")}.json', 'w'), indent=1, ensure_ascii=False)
+        print(f'{job}: +{len(man) - len(prev)}/{len(items)} new clips, total {len(man)}, model {make.TTS_MODEL}', flush=True)
+        continue
     prev_m = f'prev/manifest_{job.replace(":", "_")}.json'
     prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
     # önceki kliplerden yalnız güvenilir olanlar: replikte benzerlik ≥ 0.65, ünlemde sırayla eşleşmiş (ratio > 0)
