@@ -7,10 +7,16 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import make
 
-SRC = 'https://api.github.com/repos/olgunkadirgulhan/bloop-bonkers/contents/voice_lines.py'  # raw CDN önbelleği gecikiyor
-ns = {}
-exec(urllib.request.urlopen(urllib.request.Request(SRC, headers={'Accept': 'application/vnd.github.raw'}), timeout=60).read().decode(), ns)
-LINES, EXCLAIM = ns['LINES'], ns['EXCLAIM']
+def lines_of(repo):
+    """<repo>/voice_lines.py (GitHub API; raw CDN önbelleği gecikiyor)."""
+    src = f'https://api.github.com/repos/olgunkadirgulhan/{repo}/contents/voice_lines.py'
+    ns = {}
+    exec(urllib.request.urlopen(urllib.request.Request(src, headers={'Accept': 'application/vnd.github.raw'}), timeout=60).read().decode(), ns)
+    return ns
+
+
+NS = {'bloop': lines_of('bloop-bonkers')}
+LINES, EXCLAIM = NS['bloop']['LINES'], NS['bloop']['EXCLAIM']
 STYLE = {
     'N': ("Read the transcript below aloud as a friendly, cheerful cartoon character with a polite, calm energy. "
           "Each line is a separate reaction: leave a clear pause of about two seconds between lines. "
@@ -18,6 +24,12 @@ STYLE = {
     'P': ("Read the transcript below aloud as a hyperactive, chaotic, gleeful cartoon character, very over the top and "
           "funny, like an anime character losing control. Each line is a separate reaction: leave a clear pause of about "
           "two seconds between lines. Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:"),
+    'paw-N': ("Read the transcript below aloud as a cartoon cat: deadpan, sarcastic, unimpressed and a little dramatic. "
+              "Each line is a separate reaction: leave a clear pause of about two seconds between lines. "
+              "Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:"),
+    'paw-P': ("Read the transcript below aloud as a cartoon dog: extremely excited, happy, energetic and loud. "
+              "Each line is a separate reaction: leave a clear pause of about two seconds between lines. "
+              "Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:"),
     'ex': ("Perform the transcript below as a cute, energetic anime cartoon character, very expressive. Each line is a "
            "separate exclamation: leave a clear pause of about two seconds between lines. Speak ONLY the transcript lines, "
            "never these instructions.\n\nTRANSCRIPT:"),
@@ -109,20 +121,26 @@ def save(x, path):
 MODELS = ['gemini-3.8-flash-tts', 'gemini-2.5-flash-preview-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-pro-preview-tts',
           'gemini-3.8-flash-lite-tts']
 for job in filter(None, os.environ.get('JOBS', '').split(',')):
-    prev_m = f'prev/manifest_{job}.json'
+    # 'paw:Zephyr-N' → Paw Rivals replikleri (N = kedi, P = köpek), çıktı out/paw/<Ses>/lines/
+    repo, job_name, root = 'bloop', job, 'out'
+    if ':' in job:
+        repo, job_name = job.split(':', 1); root = f'out/{repo}'
+        if repo not in NS: NS[repo] = lines_of({'paw': 'paw-rivals'}[repo])
+    LINES = NS[repo]['LINES']
+    prev_m = f'prev/manifest_{job.replace(":", "_")}.json'
     prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
     # önceki kliplerden yalnız güvenilir olanlar: replikte benzerlik ≥ 0.65, ünlemde sırayla eşleşmiş (ratio > 0)
-    prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= (0.65 if not job.startswith('ex-') else 0.01)}
-    if job.startswith('ex-'):
-        voice, kind = job[3:], 'ex'
+    prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= (0.65 if not job_name.startswith('ex-') else 0.01)}
+    if job_name.startswith('ex-'):
+        voice, kind = job_name[3:], 'ex'
         items = [(k, n, t) for k, lst in EXCLAIM.items() for n, t in enumerate(lst, 1)
-                 if f'out/{voice}/ex/{k}_{n}.wav' not in prev]
+                 if f'{root}/{voice}/ex/{k}_{n}.wav' not in prev]
         texts = [t for _, _, t in items]; thr = 0.25
     else:
-        voice, kind = job.split('-')
+        voice, kind = job_name.split('-')
         keys = list(LINES)
         items = [(k, kind, LINES[k][0 if kind == 'N' else 1]) for k in keys
-                 if f'out/{voice}/lines/{k}_{kind}.wav' not in prev]
+                 if f'{root}/{voice}/lines/{k}_{kind}.wav' not in prev]
         texts = [t for _, _, t in items]; thr = 0.65
     if not items:
         print(f'{job}: hepsi önceden hazır', flush=True); continue
@@ -130,7 +148,7 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
         make.TTS_MODEL = MODELS[0]
         try:
-            a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job}.wav', STYLE[kind]); break
+            a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job.replace(":", "_")}.wav', STYLE.get(f'{repo}-{kind}', STYLE[kind])); break
         except SystemExit as e:
             print(f'{MODELS[0]}: {e} -> sonraki model', flush=True); MODELS.pop(0)
     if a is None:
@@ -140,7 +158,7 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     for li, (k, n, t) in enumerate(items):
         if li in got:
             x, hd, r = got[li]
-            path = f'out/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'out/{voice}/lines/{k}_{n}.wav'
+            path = f'{root}/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'{root}/{voice}/lines/{k}_{n}.wav'
             save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
-    json.dump(man, open(f'out/manifest_{job}.json', 'w'), indent=1, ensure_ascii=False)
+    json.dump(man, open(f'out/manifest_{job.replace(":", "_")}.json', 'w'), indent=1, ensure_ascii=False)
     print(f'{job}: +{len(man) - len(prev)}/{len(items)} new clips, total {len(man)}, audio {round(len(a) / make.SR)} s, model {make.TTS_MODEL}', flush=True)
