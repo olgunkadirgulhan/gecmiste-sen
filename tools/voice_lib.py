@@ -7,9 +7,9 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import make
 
-SRC = 'https://raw.githubusercontent.com/olgunkadirgulhan/bloop-bonkers/main/voice_lines.py'
+SRC = 'https://api.github.com/repos/olgunkadirgulhan/bloop-bonkers/contents/voice_lines.py'  # raw CDN önbelleği gecikiyor
 ns = {}
-exec(urllib.request.urlopen(SRC, timeout=60).read().decode(), ns)
+exec(urllib.request.urlopen(urllib.request.Request(SRC, headers={'Accept': 'application/vnd.github.raw'}), timeout=60).read().decode(), ns)
 LINES, EXCLAIM = ns['LINES'], ns['EXCLAIM']
 STYLE = {
     'N': ("Read the transcript below aloud as a friendly, cheerful cartoon character with a polite, calm energy. "
@@ -30,7 +30,7 @@ def norm(t):
     return re.sub(r'[^a-z]', '', t.lower())
 
 
-def segments(a, min_gap=0.32):
+def segments(a, min_gap=0.6):  # satır arası ~1 sn, satır içi duraklar daha kısa
     fr = make.SR // 100
     rms = np.sqrt(np.mean(a[:len(a) // fr * fr].reshape(-1, fr) ** 2, axis=1))
     loud = rms > rms.max() * 0.04
@@ -51,7 +51,8 @@ def heard(x):
     path = '/tmp/_seg.wav'
     with wave.open(path, 'w') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(make.SR)
-        w.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
+        pad = np.zeros(make.SR // 2)  # çok kısa klipte Whisper şaşırıyor: yarım saniye sessizlik ekle
+        w.writeframes((np.clip(np.concatenate([pad, x, pad]), -1, 1) * 32767).astype(np.int16).tobytes())
     s, _ = ASR.transcribe(path, language='en', without_timestamps=True)
     return ' '.join(t.text for t in s).strip()
 
@@ -59,6 +60,25 @@ def heard(x):
 def align(a, texts, thr):
     """Sıralı hizalama: her beklenen satır için sıradaki 1-2 parçadan (birleştirerek) en iyi eşleşeni seç."""
     segs = segments(a)
+    if len(segs) == len(texts):  # parça sayısı tutuyorsa sıra yeterli; sadece talimat okuma gibi uzun parçaları ele
+        out = {}
+        for li, (s0, e0) in enumerate(segs):
+            hd = heard(a[s0:e0])
+            r = difflib.SequenceMatcher(None, norm(hd), norm(texts[li])).ratio()
+            if len(hd.split()) <= len(texts[li].split()) + 4 and r >= thr * 0.6:
+                out[li] = (a[max(0, s0 - 2000):e0 + 3000], hd, round(r, 2))
+        return out
+    if thr < 0.3:  # Japonca ünlemleri Whisper tanıyamıyor: en uzun n-1 sessizlikten böl, sadece uzun (talimat) parçaları ele
+        bounds = sorted(sorted(((segs[i + 1][0] - segs[i][1], i) for i in range(len(segs) - 1)), reverse=True)[:len(texts) - 1],
+                        key=lambda g: g[1])
+        cut = [0] + [g[1] + 1 for g in bounds] + [len(segs)]
+        out = {}
+        for li in range(min(len(texts), len(cut) - 1)):
+            s0, e0 = segs[cut[li]][0], segs[cut[li + 1] - 1][1]
+            hd = heard(a[s0:e0])
+            if len(hd.split()) <= 4 and (e0 - s0) < 4 * make.SR:
+                out[li] = (a[max(0, s0 - 2000):e0 + 3000], hd, 0.0)
+        return out
     texts_h = {}
     def h(i, j):
         if (i, j) not in texts_h: texts_h[(i, j)] = heard(a[segs[i][0]:segs[j][1]])
@@ -87,7 +107,7 @@ def save(x, path):
         w.writeframes((np.clip(x / (np.abs(x).max() + 1e-9) * 0.95, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
-for job in os.environ['JOBS'].split(','):
+for job in filter(None, os.environ.get('JOBS', '').split(',')):
     if job.startswith('ex-'):
         voice, kind = job[3:], 'ex'
         items = [(k, n, t) for k, lst in EXCLAIM.items() for n, t in enumerate(lst, 1)]
