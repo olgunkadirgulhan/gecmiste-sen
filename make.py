@@ -115,6 +115,10 @@ def voice_path(i):
     return os.path.join(CACHE, f"v_{i:03d}.wav")
 
 
+GEMINI_KEYS = [k for k in (os.environ.get("GEMINI_API_KEY"), os.environ.get("GEMINI_API_KEY_2")) if k]
+DEAD_KEYS = set()  # (model, anahtar sırası): günlük kotası biten çiftler
+
+
 def gemini_tts(text, voice, wav, style=TTS_STYLE):
     """Gemini TTS: 24 kHz mono PCM döner; kota/geçici hatada bekleyip yeniden dener."""
     import base64, time, urllib.request, urllib.error
@@ -122,9 +126,14 @@ def gemini_tts(text, voice, wav, style=TTS_STYLE):
                        "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {
                            "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}).encode()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{globals()['TTS_MODEL']}:generateContent"
+    model = globals()['TTS_MODEL']
     for attempt in range(8):
+        live = [i for i in range(len(GEMINI_KEYS)) if (model, i) not in DEAD_KEYS]
+        if not live:
+            raise SystemExit("gemini daily quota exhausted")
+        ki = live[0]
         req = urllib.request.Request(url, body, {"Content-Type": "application/json",
-                                                 "x-goog-api-key": os.environ["GEMINI_API_KEY"]})
+                                                 "x-goog-api-key": GEMINI_KEYS[ki]})
         try:
             with urllib.request.urlopen(req, timeout=180) as r:
                 part = json.load(r)["candidates"][0]["content"]["parts"][0]
@@ -133,8 +142,10 @@ def gemini_tts(text, voice, wav, style=TTS_STYLE):
         except (urllib.error.HTTPError, urllib.error.URLError, KeyError, TimeoutError) as e:
             msg = e.read().decode()[:1500] if isinstance(e, urllib.error.HTTPError) else str(e)
             print("gemini retry", attempt, msg, flush=True)
-            if "PerDay" in msg:  # günlük kota bitti: beklemek boşuna
-                raise SystemExit("gemini daily quota exhausted")
+            if "PerDay" in msg:  # bu anahtarın günlük kotası bitti: sıradaki anahtar, yoksa çık
+                DEAD_KEYS.add((model, ki))
+                print(f"anahtar {ki + 1} kotası bitti ({model})", flush=True)
+                continue
             time.sleep(min(90, 10 * 2 ** attempt))
     else:
         raise SystemExit("gemini tts failed")

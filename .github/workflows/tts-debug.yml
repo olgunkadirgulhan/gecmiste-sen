@@ -9,3 +9,4 @@ jobs:
       - run: python tools/tts_debug.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}

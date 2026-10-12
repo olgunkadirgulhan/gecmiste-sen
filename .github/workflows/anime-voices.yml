@@ -14,6 +14,7 @@ jobs:
       - run: python tools/anime_voices.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       - uses: actions/upload-artifact@v5
         with:
           name: anime
