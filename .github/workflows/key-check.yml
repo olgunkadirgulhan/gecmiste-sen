@@ -10,5 +10,6 @@ jobs:
           K2: ${{ secrets.GEMINI_API_KEY_2 }}
           K3: ${{ secrets.GEMINI_API_KEY_3 }}
         run: |
-          [ "$K1" = "$K2" ] && echo "AYNI ANAHTAR" || echo "FARKLI ANAHTARLAR"
+          [ "$K1" = "$K2" ] && echo "1-2 AYNI" || echo "1-2 FARKLI"
+          [ -n "$K3" ] && { [ "$K3" = "$K1" ] || [ "$K3" = "$K2" ]; } && echo "3 ESKİLERDEN BİRİYLE AYNI" || echo "3 FARKLI"
           for n in 1 2 3; do eval k=\$K$n; echo "anahtar $n uzunluk ${#k}: $(curl -s -o /dev/null -w '%{http_code}' -H "x-goog-api-key: $k" -H 'Content-Type: application/json' -d '{"contents":[{"parts":[{"text":"say ok"}]}]}' https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent)"; done
