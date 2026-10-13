@@ -133,7 +133,7 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
         prev_m = f'prev/manifest_{job.replace(":", "_")}.json'
         prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
         prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= 0.5}
-        items = [(sit, '', txt) for sit, (txt, mood) in LINES[code].items() if f'{root}/{code}/{sit}.wav' not in prev]
+        items = [(sit, '', txt) for sit, (txt, mood) in LINES[code].items() if f'{root}/{code}/{sit}.wav' not in prev][:25]   # uzun ses kesiliyor → istek başına ≤25
         if not items:
             print(f'{job}: hepsi önceden hazır', flush=True); continue
         who = (f"{accent} cartoon space character (a talking planet), in clear American English: " if repo == 'os' else
