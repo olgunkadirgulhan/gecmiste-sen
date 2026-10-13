@@ -9,4 +9,5 @@ jobs:
           K1: ${{ secrets.GEMINI_API_KEY }}
           K2: ${{ secrets.GEMINI_API_KEY_2 }}
         run: |
+          [ "$K1" = "$K2" ] && echo "AYNI ANAHTAR" || echo "FARKLI ANAHTARLAR"
           for n in 1 2; do eval k=\$K$n; echo "anahtar $n uzunluk ${#k}: $(curl -s -o /dev/null -w '%{http_code}' -H "x-goog-api-key: $k" -H 'Content-Type: application/json' -d '{"contents":[{"parts":[{"text":"say ok"}]}]}' https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent)"; done
