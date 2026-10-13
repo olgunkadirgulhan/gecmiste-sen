@@ -115,7 +115,7 @@ def voice_path(i):
     return os.path.join(CACHE, f"v_{i:03d}.wav")
 
 
-GEMINI_KEYS = [k for k in (os.environ.get("GEMINI_API_KEY"), os.environ.get("GEMINI_API_KEY_2")) if k]
+GEMINI_KEYS = [k for k in (os.environ.get("GEMINI_API_KEY"), os.environ.get("GEMINI_API_KEY_2"), os.environ.get("GEMINI_API_KEY_3")) if k]
 DEAD_KEYS = set()  # (model, anahtar sırası): günlük kotası biten çiftler
 
 
