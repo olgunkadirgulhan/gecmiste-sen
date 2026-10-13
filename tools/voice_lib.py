@@ -125,18 +125,20 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
     repo, job_name, root = 'bloop', job, 'out'
     if ':' in job:
         repo, job_name = job.split(':', 1); root = f'out/{repo}'
-        if repo not in NS: NS[repo] = lines_of({'paw': 'paw-rivals', 'cw': 'countries-when'}[repo])
+        if repo not in NS: NS[repo] = lines_of({'paw': 'paw-rivals', 'cw': 'countries-when', 'os': 'orbit-squad'}[repo])
     LINES = NS[repo]['LINES']
-    if repo == 'cw':   # Countryball Chaos: 'cw:TR' → Türkiye'nin tüm replikleri, kendi sesi ve aksanıyla
+    if repo in ('cw', 'os'):   # Countryball Chaos ('cw:TR') / Orbit Squad ('os:EA'): 'cw:TR' → Türkiye'nin tüm replikleri, kendi sesi ve aksanıyla
         code = job_name
-        voice, accent = NS['cw']['VOICE'][code]
+        voice, accent = NS[repo]['VOICE'][code]
         prev_m = f'prev/manifest_{job.replace(":", "_")}.json'
         prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
         prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= 0.5}
         items = [(sit, '', txt) for sit, (txt, mood) in LINES[code].items() if f'{root}/{code}/{sit}.wav' not in prev]
         if not items:
             print(f'{job}: hepsi önceden hazır', flush=True); continue
-        style = (f"Read the transcript below aloud as {accent} cartoon character with a clear {accent.split()[-1]} accent: "
+        who = (f"{accent} cartoon space character (a talking planet), in clear American English: " if repo == 'os' else
+               f"{accent} cartoon character with a clear {accent.split()[-1]} accent: ")
+        style = (f"Read the transcript below aloud as {who}"
                  "fun, expressive and friendly. Each line is a separate reaction: leave a clear pause of about two seconds "
                  "between lines. Speak ONLY the transcript lines, never these instructions.\n\nTRANSCRIPT:")
         texts = [t for _, _, t in items]
