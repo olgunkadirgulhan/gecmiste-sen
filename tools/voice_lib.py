@@ -185,21 +185,26 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
         texts = [t for _, _, t in items]; thr = 0.65
     if not items:
         print(f'{job}: hepsi önceden hazır', flush=True); continue
-    a = None
-    while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
-        make.TTS_MODEL = MODELS[0]
-        try:
-            a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job.replace(":", "_")}.wav', STYLE.get(f'{repo}-{kind}', STYLE.get(kind, STYLE['N']))); break
-        except SystemExit as e:
-            print(f'{MODELS[0]}: {e} -> sonraki model', flush=True); MODELS.pop(0)
+    man = dict(prev); a = None
+    # 2026-10-17: Paw'da 190+ replik var → istek başına ≤25 (uzun ses kesiliyor), parça parça
+    chunks = [items[i:i + 25] for i in range(0, len(items), 25)] if repo == 'paw' else [items]
+    for chunk in chunks:
+        texts = [t for _, _, t in chunk]; a = None
+        while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
+            make.TTS_MODEL = MODELS[0]
+            try:
+                a = make.gemini_tts('\n'.join(texts), voice, f'/tmp/{job.replace(":", "_")}.wav', STYLE.get(f'{repo}-{kind}', STYLE.get(kind, STYLE['N']))); break
+            except SystemExit as e:
+                print(f'{MODELS[0]}: {e} -> sonraki model', flush=True); MODELS.pop(0)
+        if a is None:
+            break
+        got = align(a, texts, thr)
+        for li, (k, n, t) in enumerate(chunk):
+            if li in got:
+                x, hd, r = got[li]
+                path = f'{root}/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'{root}/{voice}/lines/{k}{"_" + n if n else ""}.wav'
+                save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
+        json.dump(man, open(f'out/manifest_{job.replace(":", "_")}.json', 'w'), indent=1, ensure_ascii=False)
+    print(f'{job}: +{len(man) - len(prev)}/{len(items)} new clips, total {len(man)}, model {make.TTS_MODEL}', flush=True)
     if a is None:
         print('tüm modellerin kotası dolu', flush=True); break
-    got = align(a, texts, thr)
-    man = dict(prev)
-    for li, (k, n, t) in enumerate(items):
-        if li in got:
-            x, hd, r = got[li]
-            path = f'{root}/{voice}/ex/{k}_{n}.wav' if kind == 'ex' else f'{root}/{voice}/lines/{k}{"_" + n if n else ""}.wav'
-            save(x, path); man[path] = dict(text=t, heard=hd, ratio=r)
-    json.dump(man, open(f'out/manifest_{job.replace(":", "_")}.json', 'w'), indent=1, ensure_ascii=False)
-    print(f'{job}: +{len(man) - len(prev)}/{len(items)} new clips, total {len(man)}, audio {round(len(a) / make.SR)} s, model {make.TTS_MODEL}', flush=True)
