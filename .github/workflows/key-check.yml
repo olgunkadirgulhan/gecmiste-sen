@@ -3,7 +3,7 @@ name: key-check
 on: workflow_dispatch
 jobs:
   c:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - env:
           K1: ${{ secrets.GEMINI_API_KEY }}
