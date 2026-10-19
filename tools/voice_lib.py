@@ -187,7 +187,7 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
         print(f'{job}: hepsi önceden hazır', flush=True); continue
     man = dict(prev); a = None
     # 2026-10-17: Paw'da 190+ replik var → istek başına ≤25 (uzun ses kesiliyor), parça parça
-    chunks = [items[i:i + 25] for i in range(0, len(items), 25)] if repo == 'paw' else [items]
+    chunks = [items[i:i + 25] for i in range(0, len(items), 25)] if len(items) > 25 else [items]
     for chunk in chunks:
         texts = [t for _, _, t in chunk]; a = None
         while MODELS:   # her TTS modelinin ayrı ücretsiz kotası var: biri dolunca sıradakine geç
