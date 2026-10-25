@@ -15,7 +15,20 @@ def lines_of(repo):
     return ns
 
 
+def repo_voices(repo, sub):
+    """Hedef repoda zaten olan sesler (voices/<sub>/<KOD>/<durum>.wav) → yeniden üretilip kota harcanmasın."""
+    req = urllib.request.Request(f'https://api.github.com/repos/olgunkadirgulhan/{repo}/git/trees/HEAD?recursive=1',
+                                 headers={'Accept': 'application/vnd.github+json', **({'Authorization': f"Bearer {os.environ['GITHUB_TOKEN']}"} if os.environ.get('GITHUB_TOKEN') else {})})
+    try:
+        tree = json.load(urllib.request.urlopen(req, timeout=60))['tree']
+    except Exception as e:
+        print(f'{repo} ses listesi alınamadı: {e}', flush=True); return set()
+    pre = f'voices/{sub}/'
+    return {t['path'][len(pre):] for t in tree if t['path'].startswith(pre) and t['path'].endswith('.wav')}
+
+
 NS = {'bloop': lines_of('bloop-bonkers')}
+HAVE = {}
 LINES, EXCLAIM = NS['bloop']['LINES'], NS['bloop']['EXCLAIM']
 STYLE = {
     'N': ("Read the transcript below aloud as a friendly, cheerful cartoon character with a polite, calm energy. "
@@ -133,7 +146,9 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
         prev_m = f'prev/manifest_{job.replace(":", "_")}.json'
         prev = json.load(open(prev_m)) if os.path.exists(prev_m) else {}
         prev = {p: v for p, v in prev.items() if v.get('ratio', 0) >= 0.5}
-        items = [(sit, '', txt) for sit, (txt, mood) in LINES[code].items() if f'{root}/{code}/{sit}.wav' not in prev][:25]   # uzun ses kesiliyor → istek başına ≤25
+        if repo not in HAVE: HAVE[repo] = repo_voices({'cw': 'countries-when', 'os': 'orbit-squad'}[repo], repo)
+        items = [(sit, '', txt) for sit, (txt, mood) in LINES[code].items()
+                 if f'{root}/{code}/{sit}.wav' not in prev and f'{code}/{sit}.wav' not in HAVE[repo]][:25]   # uzun ses kesiliyor → istek başına ≤25
         if not items:
             print(f'{job}: hepsi önceden hazır', flush=True); continue
         who = (f"{accent} cartoon space character (a talking planet), in clear American English: " if repo == 'os' else
