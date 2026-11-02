@@ -35,7 +35,7 @@ jobs:
       - run: mkdir -p out prev && (cp out/manifest_*.json prev/ 2>/dev/null || true) && if [ -z "$JOBS" ]; then os=$(echo "$OS_CODES" | tr ',' '\n' | sed 's/^/os:/' | paste -sd, -); cw=$(echo "$CW_CODES" | tr ',' '\n' | sed 's/^/cw:/' | paste -sd, -); if [ $(( 10#$(date -u +%j) % 2 )) -eq 0 ]; then export JOBS="paw:Zephyr-N,paw:Puck-P,$os,$cw"; else export JOBS="paw:Zephyr-N,paw:Puck-P,$cw,$os"; fi; fi && echo "JOBS=$JOBS" && python tools/voice_lib.py
         env:
           JOBS: ${{ inputs.jobs }}
-          OS_CODES: "EA,MA,JU,SA,MO,VE,ME,NE,SU,UR,PL,IO,EU,TI,CE"
+          OS_CODES: "EA,MA,JU,SA,MO,VE,ME,NE,SU,UR,PL,IO,EU,TI,CE,GA,EN,ER,PB"
           CW_CODES: "US,GB,BR,IN,JP,MX,DE,TR,KR,IT,FR,ES,CA,NL,SE,PH,NG,CH,PL,GR,NO,ID,CO,VN,TH,AR,IE,AT,BE,DK,FI,HU,PE,RO"
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
