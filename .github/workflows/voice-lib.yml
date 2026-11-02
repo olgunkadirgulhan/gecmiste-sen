@@ -32,7 +32,7 @@ jobs:
           path: out
           run-id: ${{ inputs.prev_run }}
           github-token: ${{ github.token }}
-      - run: mkdir -p out prev && (cp out/manifest_*.json prev/ 2>/dev/null || true) && if [ -z "$JOBS" ]; then os=$(echo "$OS_CODES" | tr ',' '\n' | sed 's/^/os:/' | paste -sd, -); cw=$(echo "$CW_CODES" | tr ',' '\n' | sed 's/^/cw:/' | paste -sd, -); if [ $(( 10#$(date -u +%j) % 2 )) -eq 0 ]; then export JOBS="$os,$cw"; else export JOBS="$cw,$os"; fi; fi && echo "JOBS=$JOBS" && python tools/voice_lib.py
+      - run: mkdir -p out prev && (cp out/manifest_*.json prev/ 2>/dev/null || true) && if [ -z "$JOBS" ]; then os=$(echo "$OS_CODES" | tr ',' '\n' | sed 's/^/os:/' | paste -sd, -); cw=$(echo "$CW_CODES" | tr ',' '\n' | sed 's/^/cw:/' | paste -sd, -); if [ $(( 10#$(date -u +%j) % 2 )) -eq 0 ]; then export JOBS="paw:Zephyr-N,paw:Puck-P,$os,$cw"; else export JOBS="paw:Zephyr-N,paw:Puck-P,$cw,$os"; fi; fi && echo "JOBS=$JOBS" && python tools/voice_lib.py
         env:
           JOBS: ${{ inputs.jobs }}
           OS_CODES: "EA,MA,JU,SA,MO,VE,ME,NE,SU,UR,PL,IO,EU,TI,CE"

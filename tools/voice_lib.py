@@ -196,6 +196,10 @@ for job in filter(None, os.environ.get('JOBS', '').split(',')):
         else:               # 'N2', 'P3' ...: ek varyantlar (MORE)
             items = [(k, kind, NS[repo]['MORE'][k][0 if kind[0] == 'N' else 1][int(kind[1]) - 2]) for k in NS[repo]['MORE']]
         items = [it for it in items if f'{root}/{voice}/lines/{it[0]}{"_" + it[1] if it[1] else ""}.wav' not in prev]
+        if repo == 'paw':   # 2026-11-02: paw-rivals'ta zaten olan klipler yeniden üretilmez (kota)
+            hk = ('paw', voice)
+            if hk not in HAVE: HAVE[hk] = repo_voices('paw-rivals', f'{voice}/lines')
+            items = [it for it in items if f'{it[0]}{"_" + it[1] if it[1] else ""}.wav' not in HAVE[hk]]
         kind = kind if kind in ('N', 'P', 'C') else kind[0]
         texts = [t for _, _, t in items]; thr = 0.65
     if not items:
